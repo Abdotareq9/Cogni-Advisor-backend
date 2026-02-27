@@ -1,0 +1,2695 @@
+{
+  "info": {
+    "name": "Cogni-Advisor API Test Collection",
+    "version": "1.0.0",
+    "description": "Comprehensive test collection for all API endpoints in the Cogni-Advisor project. Each endpoint includes multiple scenarios: Success, Missing Auth, Wrong Role, Validation Error, Not Found, and Duplicate/Conflict where applicable.",
+    "generatedAt": "2026-02-26"
+  },
+  "variables": {
+    "BASE_URL": "http://localhost:5000",
+    "ADMIN_TOKEN": "FILL_AFTER_LOGIN_AS_ADMIN",
+    "STUDENT_TOKEN": "FILL_AFTER_LOGIN_AS_STUDENT",
+    "ADVISOR_TOKEN": "FILL_AFTER_LOGIN_AS_ADVISOR",
+    "USER_ID": "1",
+    "notes": "1) Start the server: npm run dev  2) Login as each role using POST /api/auth/login  3) Copy the token into the variables above  4) Replace placeholder IDs (e.g. STUDENT_ID, COURSE_ID, USER_ID) with real values from your database"
+  },
+  "howToUse": {
+    "step1": "Run the server: npm run dev",
+    "step2": "Login with each role using the auth.login endpoint and copy the returned token into the variables above",
+    "step3": "Replace placeholder values like {{STUDENT_ID}}, {{COURSE_ID}}, {{PLAN_ID}}, etc. with real IDs from your database",
+    "step4": "Send each request using your preferred HTTP client (curl, Postman, Insomnia, Bruno, etc.)",
+    "step5": "Compare the actual response status and body against the expectedStatus and expectedBody described in each scenario"
+  },
+  "modules": [
+    {
+      "module": "health",
+      "description": "Server and database health check",
+      "requests": [
+        {
+          "id": "health-check",
+          "name": "Health Check",
+          "method": "GET",
+          "path": "{{BASE_URL}}/health",
+          "auth": "none",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "scenarios": [
+            {
+              "id": "health-success",
+              "name": "Success - Server and DB connected",
+              "expectedStatus": 200,
+              "expectedBody": { "status": "OK", "database": "connected" }
+            },
+            {
+              "id": "health-db-down",
+              "name": "Error - Database disconnected",
+              "note": "This scenario occurs when the database is unavailable",
+              "expectedStatus": 503,
+              "expectedBody": { "status": "ERROR", "database": "disconnected" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "auth",
+      "description": "Authentication endpoints - login and password change",
+      "requests": [
+        {
+          "id": "auth-login",
+          "name": "Login",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/auth/login",
+          "auth": "none",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "scenarios": [
+            {
+              "id": "auth-login-success",
+              "name": "Success - Valid credentials",
+              "body": {
+                "identifier": "12345678901234",
+                "password": "password123"
+              },
+              "expectedStatus": 200,
+              "expectedBody": {
+                "token": "<JWT_TOKEN>",
+                "user": { "id": 1, "first_name": "Ali", "last_name": "Ahmed", "role": "STUDENT" }
+              }
+            },
+            {
+              "id": "auth-login-wrong-password",
+              "name": "Fail - Wrong password",
+              "body": {
+                "identifier": "12345678901234",
+                "password": "wrongpassword"
+              },
+              "expectedStatus": 401,
+              "expectedBody": { "success": false, "message": "Invalid credentials" }
+            },
+            {
+              "id": "auth-login-user-not-found",
+              "name": "Fail - User not found",
+              "body": {
+                "identifier": "99999999999999",
+                "password": "password123"
+              },
+              "expectedStatus": 401,
+              "expectedBody": { "success": false, "message": "Invalid credentials" }
+            },
+            {
+              "id": "auth-login-validation-short-id",
+              "name": "Validation Error - identifier too short (less than 14 chars)",
+              "body": {
+                "identifier": "123",
+                "password": "password123"
+              },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "errors": [{ "field": "body.identifier" }] }
+            },
+            {
+              "id": "auth-login-validation-short-password",
+              "name": "Validation Error - password too short (less than 6 chars)",
+              "body": {
+                "identifier": "12345678901234",
+                "password": "123"
+              },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "errors": [{ "field": "body.password" }] }
+            },
+            {
+              "id": "auth-login-validation-missing-fields",
+              "name": "Validation Error - missing body fields",
+              "body": {},
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            },
+            {
+              "id": "auth-login-rate-limit",
+              "name": "Rate Limit - more than 10 requests in 15 minutes",
+              "note": "Send this request 11+ times rapidly to trigger rate limiting",
+              "body": {
+                "identifier": "12345678901234",
+                "password": "password123"
+              },
+              "expectedStatus": 429,
+              "expectedBody": { "success": false, "message": "Too many login attempts, please try again later." }
+            }
+          ]
+        },
+        {
+          "id": "auth-change-password",
+          "name": "Change Password",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/auth/change-password",
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "auth-change-password-success",
+              "name": "Success - Valid current and new password",
+              "body": {
+                "currentPassword": "password123",
+                "newPassword": "newpassword456"
+              },
+              "expectedStatus": 200,
+              "expectedBody": { "message": "Password updated successfully" }
+            },
+            {
+              "id": "auth-change-password-wrong-current",
+              "name": "Fail - Incorrect current password",
+              "body": {
+                "currentPassword": "wrongpassword",
+                "newPassword": "newpassword456"
+              },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "message": "Incorrect current password" }
+            },
+            {
+              "id": "auth-change-password-no-auth",
+              "name": "Fail - No Authorization header",
+              "headers": {},
+              "body": {
+                "currentPassword": "password123",
+                "newPassword": "newpassword456"
+              },
+              "expectedStatus": 401
+            },
+            {
+              "id": "auth-change-password-validation",
+              "name": "Validation Error - newPassword too short",
+              "body": {
+                "currentPassword": "password123",
+                "newPassword": "123"
+              },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "users",
+      "description": "User management - ADMIN only",
+      "requests": [
+        {
+          "id": "users-list",
+          "name": "List All Users",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/users",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "users-list-success",
+              "name": "Success - ADMIN gets user list",
+              "expectedStatus": 200,
+              "expectedBody": "<array of users>"
+            },
+            {
+              "id": "users-list-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "users-list-wrong-role",
+              "name": "Fail - STUDENT cannot access (403)",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "users-create",
+          "name": "Create User",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/users",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "users-create-success-student",
+              "name": "Success - Create STUDENT user",
+              "body": {
+                "first_name": "Ahmed",
+                "last_name": "Ali",
+                "national_id": "11111111111111",
+                "personal_email": "ahmed.ali@example.com",
+                "password": "password123",
+                "role": "STUDENT"
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "users-create-success-advisor",
+              "name": "Success - Create ADVISOR user",
+              "body": {
+                "first_name": "Dr. Sara",
+                "last_name": "Hassan",
+                "national_id": "22222222222222",
+                "personal_email": "sara.hassan@example.com",
+                "password": "advisor123",
+                "role": "ADVISOR"
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "users-create-duplicate-email",
+              "name": "Fail - Duplicate national_id or email",
+              "body": {
+                "first_name": "Ahmed",
+                "last_name": "Ali",
+                "national_id": "11111111111111",
+                "personal_email": "ahmed.ali@example.com",
+                "password": "password123",
+                "role": "STUDENT"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "users-create-validation-missing",
+              "name": "Validation Error - missing required fields",
+              "body": {
+                "first_name": "Ahmed"
+              },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            },
+            {
+              "id": "users-create-validation-invalid-role",
+              "name": "Validation Error - invalid role",
+              "body": {
+                "first_name": "Ahmed",
+                "last_name": "Ali",
+                "national_id": "33333333333333",
+                "personal_email": "test@test.com",
+                "password": "pass123",
+                "role": "SUPERUSER"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "users-create-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "body": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "users-get-by-id",
+          "name": "Get User by ID",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/users/{{USER_ID}}",
+          "pathParams": { "USER_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "users-get-success",
+              "name": "Success - Get existing user",
+              "path": "{{BASE_URL}}/api/users/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "users-get-not-found",
+              "name": "Fail - User not found",
+              "path": "{{BASE_URL}}/api/users/99999",
+              "expectedStatus": 404
+            },
+            {
+              "id": "users-get-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "users-update",
+          "name": "Update User",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/users/{{USER_ID}}",
+          "pathParams": { "USER_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "users-update-success",
+              "name": "Success - Update user fields",
+              "path": "{{BASE_URL}}/api/users/1",
+              "body": {
+                "first_name": "Updated",
+                "last_name": "Name"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "users-update-not-found",
+              "name": "Fail - User not found",
+              "path": "{{BASE_URL}}/api/users/99999",
+              "body": { "first_name": "Test" },
+              "expectedStatus": 404
+            },
+            {
+              "id": "users-update-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "users-delete",
+          "name": "Delete User",
+          "method": "DELETE",
+          "path": "{{BASE_URL}}/api/users/{{USER_ID}}",
+          "pathParams": { "USER_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "users-delete-success",
+              "name": "Success - User deleted (204 No Content)",
+              "path": "{{BASE_URL}}/api/users/2",
+              "note": "Use a USER_ID that is not the current admin (cannot delete self)",
+              "expectedStatus": 204
+            },
+            {
+              "id": "users-delete-not-found",
+              "name": "Fail - User not found",
+              "path": "{{BASE_URL}}/api/users/99999",
+              "expectedStatus": 404,
+              "expectedBody": { "success": false, "message": "User not found" }
+            },
+            {
+              "id": "users-delete-self",
+              "name": "Fail - Cannot delete own account",
+              "path": "{{BASE_URL}}/api/users/1",
+              "note": "When USER_ID equals the logged-in admin's id",
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "message": "Cannot delete your own account" }
+            },
+            {
+              "id": "users-delete-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "users-delete-wrong-role",
+              "name": "Fail - STUDENT cannot delete users",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            },
+            {
+              "id": "users-delete-validation-invalid-id",
+              "name": "Validation Error - invalid id (non-numeric)",
+              "path": "{{BASE_URL}}/api/users/abc",
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "students",
+      "description": "Student management endpoints",
+      "requests": [
+        {
+          "id": "students-me-summary",
+          "name": "Get My Academic Summary",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/students/me/summary",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "students-me-summary-success",
+              "name": "Success - Student gets own summary",
+              "expectedStatus": 200,
+              "expectedBody": {
+                "student_id": "<number>",
+                "cumulative_gpa": "<decimal>",
+                "earned_hours": "<number>",
+                "remaining_hours": "<number>",
+                "current_level": "<number>",
+                "passed_courses": "<number>",
+                "current_enrollments": "<number>"
+              }
+            },
+            {
+              "id": "students-me-summary-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "students-me-summary-wrong-role",
+              "name": "Fail - ADMIN cannot access STUDENT endpoint",
+              "headers": { "Authorization": "Bearer {{ADMIN_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "students-me",
+          "name": "Get My Profile (Student)",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/students/me",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "students-me-success",
+              "name": "Success - Get current student profile",
+              "expectedStatus": 200,
+              "expectedBody": "<student profile with user and academic info>"
+            },
+            {
+              "id": "students-me-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "students-me-wrong-role",
+              "name": "Fail - ADVISOR cannot access",
+              "headers": { "Authorization": "Bearer {{ADVISOR_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "students-me-update",
+          "name": "Update My Profile (Student)",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/students/me",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "students-me-update-success",
+              "name": "Success - Update my profile fields",
+              "body": {
+                "street_address": "New address 123",
+                "personal_email": "updated@example.com"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "students-me-update-validation",
+              "name": "Validation Error - invalid email",
+              "body": { "personal_email": "not-an-email" },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            },
+            {
+              "id": "students-me-update-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "students-get-by-id",
+          "name": "Get Student by ID (Admin)",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/students/{{STUDENT_ID}}",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "students-get-success",
+              "name": "Success - ADMIN gets student by ID",
+              "path": "{{BASE_URL}}/api/students/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "students-get-not-found",
+              "name": "Fail - Student not found",
+              "path": "{{BASE_URL}}/api/students/99999",
+              "expectedStatus": 404
+            },
+            {
+              "id": "students-get-invalid-id",
+              "name": "Validation Error - non-numeric ID",
+              "path": "{{BASE_URL}}/api/students/abc",
+              "expectedStatus": 400
+            },
+            {
+              "id": "students-get-wrong-role",
+              "name": "Fail - STUDENT cannot access",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "students-update",
+          "name": "Update Student (Admin)",
+          "method": "PUT",
+          "path": "{{BASE_URL}}/api/students/{{STUDENT_ID}}",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "students-update-success",
+              "name": "Success - Update student data",
+              "path": "{{BASE_URL}}/api/students/1",
+              "body": {
+                "major_type": "Computer Science",
+                "dept_id": 1
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "students-update-not-found",
+              "name": "Fail - Student not found",
+              "path": "{{BASE_URL}}/api/students/99999",
+              "body": { "major_type": "CS" },
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "id": "students-deactivate",
+          "name": "Deactivate Student (Admin)",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/students/{{STUDENT_ID}}/deactivate",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "students-deactivate-success",
+              "name": "Success - Student deactivated",
+              "path": "{{BASE_URL}}/api/students/1/deactivate",
+              "expectedStatus": 200
+            },
+            {
+              "id": "students-deactivate-not-found",
+              "name": "Fail - Student not found",
+              "path": "{{BASE_URL}}/api/students/99999/deactivate",
+              "expectedStatus": 404
+            },
+            {
+              "id": "students-deactivate-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "courses",
+      "description": "Course management - 8 endpoints",
+      "requests": [
+        {
+          "id": "courses-list",
+          "name": "List All Courses",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/courses",
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-list-success",
+              "name": "Success - Get all courses",
+              "expectedStatus": 200,
+              "expectedBody": "<array of courses>"
+            },
+            {
+              "id": "courses-list-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "courses-create",
+          "name": "Create Course",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/courses",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-create-success",
+              "name": "Success - Create new course",
+              "body": {
+                "course_code": "CS301",
+                "course_name": "Algorithms",
+                "credits": 3,
+                "required_hours_to_take": 60,
+                "is_available": true
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "courses-create-duplicate-code",
+              "name": "Fail - Duplicate course_code",
+              "body": {
+                "course_code": "CS301",
+                "course_name": "Algorithms Duplicate",
+                "credits": 3
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "courses-create-validation-missing",
+              "name": "Validation Error - missing required fields",
+              "body": {
+                "credits": 3
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "courses-create-validation-zero-credits",
+              "name": "Validation Error - credits must be at least 1",
+              "body": {
+                "course_code": "CS999",
+                "course_name": "Zero Credits",
+                "credits": 0
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "courses-create-wrong-role",
+              "name": "Fail - STUDENT cannot create course",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "course_code": "CS302", "course_name": "Test", "credits": 3 },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "courses-get-by-id",
+          "name": "Get Course by ID",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+          "pathParams": { "COURSE_ID": 1 },
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-get-success",
+              "name": "Success - Get existing course",
+              "path": "{{BASE_URL}}/api/courses/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "courses-get-not-found",
+              "name": "Fail - Course not found",
+              "path": "{{BASE_URL}}/api/courses/99999",
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "id": "courses-update",
+          "name": "Update Course",
+          "method": "PUT",
+          "path": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+          "pathParams": { "COURSE_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-update-success",
+              "name": "Success - Update course name and credits",
+              "path": "{{BASE_URL}}/api/courses/1",
+              "body": {
+                "course_name": "Advanced Algorithms",
+                "credits": 4
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "courses-update-not-found",
+              "name": "Fail - Course not found",
+              "path": "{{BASE_URL}}/api/courses/99999",
+              "body": { "course_name": "Test" },
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "id": "courses-delete",
+          "name": "Delete Course",
+          "method": "DELETE",
+          "path": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+          "pathParams": { "COURSE_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-delete-success",
+              "name": "Success - Delete course",
+              "path": "{{BASE_URL}}/api/courses/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "courses-delete-not-found",
+              "name": "Fail - Course not found",
+              "path": "{{BASE_URL}}/api/courses/99999",
+              "expectedStatus": 404
+            },
+            {
+              "id": "courses-delete-wrong-role",
+              "name": "Fail - STUDENT cannot delete",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "courses-toggle",
+          "name": "Toggle Course Availability",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/courses/{{COURSE_ID}}/toggle",
+          "pathParams": { "COURSE_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-toggle-success",
+              "name": "Success - Toggle availability (true -> false or vice versa)",
+              "path": "{{BASE_URL}}/api/courses/1/toggle",
+              "expectedStatus": 200
+            },
+            {
+              "id": "courses-toggle-not-found",
+              "name": "Fail - Course not found",
+              "path": "{{BASE_URL}}/api/courses/99999/toggle",
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "id": "courses-details",
+          "name": "Get Course Details with Prerequisites",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/courses/{{COURSE_ID}}/details",
+          "pathParams": { "COURSE_ID": 1 },
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-details-success",
+              "name": "Success - Get course with prerequisite list",
+              "path": "{{BASE_URL}}/api/courses/1/details",
+              "expectedStatus": 200
+            },
+            {
+              "id": "courses-details-not-found",
+              "name": "Fail - Course not found",
+              "path": "{{BASE_URL}}/api/courses/99999/details",
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "id": "courses-add-prerequisite",
+          "name": "Add Prerequisite to Course",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/courses/add-prerequisite",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "courses-add-prereq-success",
+              "name": "Success - Add CS101 as prerequisite for CS201",
+              "body": {
+                "courseId": 2,
+                "prerequisiteId": 1
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "courses-add-prereq-not-found",
+              "name": "Fail - Course or prerequisite not found",
+              "body": {
+                "courseId": 99999,
+                "prerequisiteId": 1
+              },
+              "expectedStatus": 404
+            },
+            {
+              "id": "courses-add-prereq-duplicate",
+              "name": "Fail - Prerequisite already exists",
+              "body": {
+                "courseId": 2,
+                "prerequisiteId": 1
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "courses-add-prereq-validation",
+              "name": "Validation Error - missing fields",
+              "body": {
+                "courseId": 2
+              },
+              "expectedStatus": 400
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "departments",
+      "description": "Department management",
+      "requests": [
+        {
+          "id": "departments-list",
+          "name": "List All Departments",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/departments",
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "departments-list-success",
+              "name": "Success - Get all departments",
+              "expectedStatus": 200
+            },
+            {
+              "id": "departments-list-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "departments-create",
+          "name": "Create Department",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/departments",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "departments-create-success",
+              "name": "Success - Create new department",
+              "body": {
+                "dept_name": "Computer Science",
+                "dept_code": "CS"
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "departments-create-duplicate",
+              "name": "Fail - Duplicate dept_name or dept_code",
+              "body": {
+                "dept_name": "Computer Science",
+                "dept_code": "CS"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "departments-create-validation",
+              "name": "Validation Error - dept_name too short",
+              "body": {
+                "dept_name": "X"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "departments-create-wrong-role",
+              "name": "Fail - STUDENT cannot create",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "dept_name": "Test Dept" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "departments-delete",
+          "name": "Delete Department",
+          "method": "DELETE",
+          "path": "{{BASE_URL}}/api/departments/{{DEPT_ID}}",
+          "pathParams": { "DEPT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "departments-delete-success",
+              "name": "Success - Delete department",
+              "path": "{{BASE_URL}}/api/departments/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "departments-delete-not-found",
+              "name": "Fail - Department not found",
+              "path": "{{BASE_URL}}/api/departments/99999",
+              "expectedStatus": 404
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "enrollments",
+      "description": "Course enrollment management",
+      "requests": [
+        {
+          "id": "enrollments-enroll",
+          "name": "Enroll in a Course",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/enrollments",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "enrollments-enroll-success",
+              "name": "Success - Student enrolls in available course",
+              "body": { "course_id": 1 },
+              "expectedStatus": 201
+            },
+            {
+              "id": "enrollments-enroll-duplicate",
+              "name": "Fail - Student already enrolled in this course",
+              "body": { "course_id": 1 },
+              "expectedStatus": 400
+            },
+            {
+              "id": "enrollments-enroll-prereq-not-met",
+              "name": "Fail - Prerequisites not met",
+              "body": { "course_id": 5 },
+              "note": "Use a course_id that has prerequisites the student has not completed",
+              "expectedStatus": 400
+            },
+            {
+              "id": "enrollments-enroll-course-not-found",
+              "name": "Fail - Course not found",
+              "body": { "course_id": 99999 },
+              "expectedStatus": 404
+            },
+            {
+              "id": "enrollments-enroll-validation",
+              "name": "Validation Error - missing course_id",
+              "body": {},
+              "expectedStatus": 400
+            },
+            {
+              "id": "enrollments-enroll-wrong-role",
+              "name": "Fail - ADMIN cannot enroll",
+              "headers": { "Authorization": "Bearer {{ADMIN_TOKEN}}" },
+              "body": { "course_id": 1 },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "enrollments-mark-passed",
+          "name": "Mark Course as Passed",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/enrollments/mark-passed",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "enrollments-mark-passed-success",
+              "name": "Success - Mark course as passed with grade A",
+              "body": {
+                "student_id": 1,
+                "course_id": 1,
+                "grade": "A"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "enrollments-mark-passed-grade-f",
+              "name": "Success - Mark course as failed with grade F",
+              "body": {
+                "student_id": 1,
+                "course_id": 2,
+                "grade": "F"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "enrollments-mark-passed-not-found",
+              "name": "Fail - Enrollment not found",
+              "body": {
+                "student_id": 99999,
+                "course_id": 99999,
+                "grade": "A"
+              },
+              "expectedStatus": 404
+            },
+            {
+              "id": "enrollments-mark-passed-validation-grade",
+              "name": "Validation Error - invalid grade value",
+              "body": {
+                "student_id": 1,
+                "course_id": 1,
+                "grade": "Z"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "enrollments-mark-passed-wrong-role",
+              "name": "Fail - STUDENT cannot mark passed",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "student_id": 1, "course_id": 1, "grade": "A" },
+              "expectedStatus": 403
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "grades",
+      "description": "Grade assignment by Advisor",
+      "requests": [
+        {
+          "id": "grades-assign",
+          "name": "Assign Grade",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/grades/assign",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "grades-assign-success",
+              "name": "Success - Advisor assigns grade B to student",
+              "body": {
+                "student_id": 1,
+                "course_id": 1,
+                "grade": "B"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "grades-assign-not-found",
+              "name": "Fail - Student or course not found",
+              "body": {
+                "student_id": 99999,
+                "course_id": 99999,
+                "grade": "A"
+              },
+              "expectedStatus": 404
+            },
+            {
+              "id": "grades-assign-validation-invalid-grade",
+              "name": "Validation Error - grade not in A/B/C/D/F",
+              "body": {
+                "student_id": 1,
+                "course_id": 1,
+                "grade": "S"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "grades-assign-wrong-role",
+              "name": "Fail - STUDENT cannot assign grade",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "student_id": 1, "course_id": 1, "grade": "A" },
+              "expectedStatus": 403
+            },
+            {
+              "id": "grades-assign-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "progress",
+      "description": "Academic progress tracking",
+      "requests": [
+        {
+          "id": "progress-get",
+          "name": "Get Student Progress",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/progress/{{STUDENT_ID}}",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "progress-get-success",
+              "name": "Success - Get progress for student",
+              "path": "{{BASE_URL}}/api/progress/1",
+              "expectedStatus": 200,
+              "expectedBody": {
+                "level": "<number>",
+                "cumulative_gpa": "<decimal>",
+                "completedCredits": "<number>",
+                "remainingCredits": "<number>",
+                "progressPercentage": "<number>"
+              }
+            },
+            {
+              "id": "progress-get-not-found",
+              "name": "Fail - Student not found",
+              "path": "{{BASE_URL}}/api/progress/99999",
+              "expectedStatus": 404
+            },
+            {
+              "id": "progress-get-invalid-id",
+              "name": "Validation Error - non-numeric studentId",
+              "path": "{{BASE_URL}}/api/progress/abc",
+              "expectedStatus": 400
+            },
+            {
+              "id": "progress-get-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "semesters",
+      "description": "Semester management - 5 endpoints",
+      "requests": [
+        {
+          "id": "semesters-list",
+          "name": "List All Semesters",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/semesters",
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semesters-list-success",
+              "name": "Success - Get all semesters",
+              "expectedStatus": 200
+            },
+            {
+              "id": "semesters-list-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "semesters-create",
+          "name": "Create Semester",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/semesters",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semesters-create-success",
+              "name": "Success - Create semester with name and dates",
+              "body": {
+                "semester_name": "Fall 2026",
+                "start_date": "2026-09-01T00:00:00.000Z",
+                "end_date": "2027-01-31T00:00:00.000Z"
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "semesters-create-name-only",
+              "name": "Success - Create semester with name only",
+              "body": {
+                "semester_name": "Spring 2027"
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "semesters-create-wrong-role",
+              "name": "Fail - STUDENT cannot create semester",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "semester_name": "Test" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "semesters-get-by-id",
+          "name": "Get Semester by ID",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/semesters/{{SEMESTER_ID}}",
+          "pathParams": { "SEMESTER_ID": 1 },
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semesters-get-success",
+              "name": "Success - Get semester by ID",
+              "path": "{{BASE_URL}}/api/semesters/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "semesters-get-not-found",
+              "name": "Fail - Semester not found",
+              "path": "{{BASE_URL}}/api/semesters/99999",
+              "expectedStatus": 404
+            },
+            {
+              "id": "semesters-get-invalid-id",
+              "name": "Validation Error - non-positive ID",
+              "path": "{{BASE_URL}}/api/semesters/0",
+              "expectedStatus": 400
+            }
+          ]
+        },
+        {
+          "id": "semesters-update",
+          "name": "Update Semester",
+          "method": "PUT",
+          "path": "{{BASE_URL}}/api/semesters/{{SEMESTER_ID}}",
+          "pathParams": { "SEMESTER_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semesters-update-success",
+              "name": "Success - Update semester name",
+              "path": "{{BASE_URL}}/api/semesters/1",
+              "body": {
+                "semester_name": "Fall 2026 Updated"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "semesters-update-not-found",
+              "name": "Fail - Semester not found",
+              "path": "{{BASE_URL}}/api/semesters/99999",
+              "body": { "semester_name": "Test" },
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "id": "semesters-delete",
+          "name": "Delete Semester",
+          "method": "DELETE",
+          "path": "{{BASE_URL}}/api/semesters/{{SEMESTER_ID}}",
+          "pathParams": { "SEMESTER_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semesters-delete-success",
+              "name": "Success - Delete semester",
+              "path": "{{BASE_URL}}/api/semesters/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "semesters-delete-not-found",
+              "name": "Fail - Semester not found",
+              "path": "{{BASE_URL}}/api/semesters/99999",
+              "expectedStatus": 404
+            },
+            {
+              "id": "semesters-delete-wrong-role",
+              "name": "Fail - STUDENT cannot delete",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "semester-records",
+      "description": "Semester academic records per student",
+      "requests": [
+        {
+          "id": "semester-records-create",
+          "name": "Create Semester Record",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/semester-records",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semester-records-create-success",
+              "name": "Success - Create record with GPA and hours",
+              "body": {
+                "student_id": 1,
+                "semester_id": 1,
+                "semester_gpa": 3.75,
+                "registered_hours": 18
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "semester-records-create-minimal",
+              "name": "Success - Create record with required fields only",
+              "body": {
+                "student_id": 1,
+                "semester_id": 2
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "semester-records-create-validation-gpa",
+              "name": "Validation Error - GPA above 4.0",
+              "body": {
+                "student_id": 1,
+                "semester_id": 1,
+                "semester_gpa": 5.0
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "semester-records-create-validation-missing",
+              "name": "Validation Error - missing student_id or semester_id",
+              "body": {
+                "semester_gpa": 3.5
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "semester-records-create-wrong-role",
+              "name": "Fail - STUDENT cannot create record",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "student_id": 1, "semester_id": 1 },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "semester-records-by-student",
+          "name": "Get Semester Records by Student",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/semester-records/student/{{STUDENT_ID}}",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semester-records-by-student-success",
+              "name": "Success - Get all semester records for a student",
+              "path": "{{BASE_URL}}/api/semester-records/student/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "semester-records-by-student-empty",
+              "name": "Success - No records found (returns empty array)",
+              "path": "{{BASE_URL}}/api/semester-records/student/99999",
+              "expectedStatus": 200,
+              "expectedBody": "[]"
+            }
+          ]
+        },
+        {
+          "id": "semester-records-by-semester",
+          "name": "Get Semester Records by Semester",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/semester-records/semester/{{SEMESTER_ID}}",
+          "pathParams": { "SEMESTER_ID": 1 },
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semester-records-by-semester-success",
+              "name": "Success - Get all records for a semester",
+              "path": "{{BASE_URL}}/api/semester-records/semester/1",
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "id": "semester-records-update",
+          "name": "Update Semester Record",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/semester-records/{{RECORD_ID}}",
+          "pathParams": { "RECORD_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "semester-records-update-success",
+              "name": "Success - Update GPA and hours",
+              "path": "{{BASE_URL}}/api/semester-records/1",
+              "body": {
+                "semester_gpa": 3.90,
+                "registered_hours": 16
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "semester-records-update-not-found",
+              "name": "Fail - Record not found",
+              "path": "{{BASE_URL}}/api/semester-records/99999",
+              "body": { "semester_gpa": 3.5 },
+              "expectedStatus": 404
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "feedback",
+      "description": "Advisor feedback for students",
+      "requests": [
+        {
+          "id": "feedback-create",
+          "name": "Create Feedback",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/feedback",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "feedback-create-success",
+              "name": "Success - Advisor creates feedback for student",
+              "body": {
+                "student_id": 1,
+                "message": "Great progress this semester. Keep it up!"
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "feedback-create-no-message",
+              "name": "Success - Feedback without message (message is optional)",
+              "body": {
+                "student_id": 1
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "feedback-create-student-not-found",
+              "name": "Fail - Student not found",
+              "body": {
+                "student_id": 99999,
+                "message": "Test"
+              },
+              "expectedStatus": 404
+            },
+            {
+              "id": "feedback-create-validation-missing",
+              "name": "Validation Error - missing student_id",
+              "body": {
+                "message": "Test message"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "feedback-create-wrong-role",
+              "name": "Fail - STUDENT cannot create feedback",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "student_id": 1, "message": "Test" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "feedback-by-student",
+          "name": "Get Feedback by Student",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/feedback/student/{{STUDENT_ID}}",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADVISOR or STUDENT (own)",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "feedback-by-student-advisor-success",
+              "name": "Success - Advisor gets feedback for student",
+              "path": "{{BASE_URL}}/api/feedback/student/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "feedback-by-student-student-own-success",
+              "name": "Success - Student gets own feedback",
+              "path": "{{BASE_URL}}/api/feedback/student/1",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 200
+            },
+            {
+              "id": "feedback-by-student-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "feedback-my",
+          "name": "Get My Feedback (Advisor)",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/feedback/my",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "feedback-my-success",
+              "name": "Success - Advisor gets their own feedback list",
+              "expectedStatus": 200
+            },
+            {
+              "id": "feedback-my-wrong-role",
+              "name": "Fail - STUDENT cannot access advisor feedback",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            },
+            {
+              "id": "feedback-my-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "notifications",
+      "description": "User notification management",
+      "requests": [
+        {
+          "id": "notifications-list",
+          "name": "Get My Notifications",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/notifications",
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "notifications-list-success",
+              "name": "Success - Get all notifications for current user",
+              "expectedStatus": 200,
+              "expectedBody": "<array of notifications>"
+            },
+            {
+              "id": "notifications-list-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "notifications-create",
+          "name": "Create Notification",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/notifications",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "notifications-create-success",
+              "name": "Success - Send notification to user",
+              "body": {
+                "recipient_id": 1,
+                "title": "System Update",
+                "body": "The system will be under maintenance tonight."
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "notifications-create-minimal",
+              "name": "Success - Notification with only recipient_id (title and body are optional)",
+              "body": {
+                "recipient_id": 1
+              },
+              "expectedStatus": 201
+            },
+            {
+              "id": "notifications-create-validation-missing",
+              "name": "Validation Error - missing recipient_id",
+              "body": {
+                "title": "Test"
+              },
+              "expectedStatus": 400
+            },
+            {
+              "id": "notifications-create-wrong-role",
+              "name": "Fail - STUDENT cannot send notifications",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "recipient_id": 2, "title": "Test" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "notifications-read-all",
+          "name": "Mark All Notifications as Read",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/notifications/read-all",
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "notifications-read-all-success",
+              "name": "Success - All notifications marked as read",
+              "expectedStatus": 200
+            },
+            {
+              "id": "notifications-read-all-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "notifications-read-one",
+          "name": "Mark Single Notification as Read",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/notifications/{{NOTIFICATION_ID}}/read",
+          "pathParams": { "NOTIFICATION_ID": 1 },
+          "auth": "bearer",
+          "authRole": "any",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "notifications-read-one-success",
+              "name": "Success - Mark specific notification as read",
+              "path": "{{BASE_URL}}/api/notifications/1/read",
+              "expectedStatus": 200
+            },
+            {
+              "id": "notifications-read-one-not-found",
+              "name": "Fail - Notification not found",
+              "path": "{{BASE_URL}}/api/notifications/99999/read",
+              "expectedStatus": 404
+            },
+            {
+              "id": "notifications-read-one-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "study-plan",
+      "description": "Student study plan management - 7 endpoints",
+      "requests": [
+        {
+          "id": "study-plan-create",
+          "name": "Create Study Plan",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/study-plan",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "study-plan-create-success",
+              "name": "Success - Create plan for semester",
+              "body": { "semester_id": 1 },
+              "expectedStatus": 201,
+              "expectedBody": {
+                "plan_id": "<number>",
+                "student_id": "<number>",
+                "semester_id": 1,
+                "plan_status": "PENDING"
+              }
+            },
+            {
+              "id": "study-plan-create-duplicate",
+              "name": "Fail - Plan already exists for this semester",
+              "body": { "semester_id": 1 },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "message": "You already created a plan for this semester" }
+            },
+            {
+              "id": "study-plan-create-validation-missing",
+              "name": "Validation Error - missing semester_id",
+              "body": {},
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            },
+            {
+              "id": "study-plan-create-validation-string-semester",
+              "name": "Validation Error - semester_id must be a number, not string",
+              "body": { "semester_id": "Fall 2025" },
+              "expectedStatus": 400
+            },
+            {
+              "id": "study-plan-create-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "body": { "semester_id": 1 },
+              "expectedStatus": 401
+            },
+            {
+              "id": "study-plan-create-wrong-role",
+              "name": "Fail - ADVISOR cannot create student plan",
+              "headers": { "Authorization": "Bearer {{ADVISOR_TOKEN}}" },
+              "body": { "semester_id": 1 },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "study-plan-me-current",
+          "name": "Get Current Study Plan",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/study-plan/me/current",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "study-plan-me-current-success",
+              "name": "Success - Get current plan with course details",
+              "path": "{{BASE_URL}}/api/study-plan/me/current",
+              "expectedStatus": 200,
+              "expectedBody": {
+                "semesterLabel": "Fall 2025 Semester",
+                "planStatus": "PENDING",
+                "totalCourses": 5,
+                "totalCredits": 18,
+                "courses": [
+                  {
+                    "code": "CS101",
+                    "name": "Introduction to CS",
+                    "instructor": null,
+                    "credits": 3,
+                    "grade": null,
+                    "status": "Planned"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "study-plan-me-current-with-semester",
+              "name": "Success - Get plan for specific semester by query param",
+              "path": "{{BASE_URL}}/api/study-plan/me/current?semesterId=1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "study-plan-me-current-not-found",
+              "name": "Fail - No plan found for current semester",
+              "note": "Use a student who has no plan created yet",
+              "expectedStatus": 404,
+              "expectedBody": { "success": false, "message": "No study plan found for the current semester" }
+            },
+            {
+              "id": "study-plan-me-current-invalid-query",
+              "name": "Validation Error - semesterId query param is not a number",
+              "path": "{{BASE_URL}}/api/study-plan/me/current?semesterId=abc",
+              "expectedStatus": 400
+            },
+            {
+              "id": "study-plan-me-current-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "study-plan-add-course",
+          "name": "Add Course to Plan",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/study-plan/{{PLAN_ID}}/add-course",
+          "pathParams": { "PLAN_ID": 1 },
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "study-plan-add-course-success",
+              "name": "Success - Add course to PENDING plan",
+              "path": "{{BASE_URL}}/api/study-plan/1/add-course",
+              "body": { "course_id": 1 },
+              "expectedStatus": 200,
+              "expectedBody": { "message": "Course added successfully" }
+            },
+            {
+              "id": "study-plan-add-course-plan-not-found",
+              "name": "Fail - Plan not found",
+              "path": "{{BASE_URL}}/api/study-plan/99999/add-course",
+              "body": { "course_id": 1 },
+              "expectedStatus": 404
+            },
+            {
+              "id": "study-plan-add-course-plan-locked",
+              "name": "Fail - Plan is APPROVED or REJECTED (locked)",
+              "note": "First get the plan reviewed and approved, then try to add a course",
+              "path": "{{BASE_URL}}/api/study-plan/1/add-course",
+              "body": { "course_id": 2 },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "message": "Plan is locked" }
+            },
+            {
+              "id": "study-plan-add-course-wrong-student",
+              "name": "Fail - Student does not own this plan",
+              "note": "Use a plan_id that belongs to a different student",
+              "path": "{{BASE_URL}}/api/study-plan/2/add-course",
+              "body": { "course_id": 1 },
+              "expectedStatus": 403
+            },
+            {
+              "id": "study-plan-add-course-validation",
+              "name": "Validation Error - missing course_id",
+              "path": "{{BASE_URL}}/api/study-plan/1/add-course",
+              "body": {},
+              "expectedStatus": 400
+            }
+          ]
+        },
+        {
+          "id": "study-plan-submit",
+          "name": "Submit Study Plan for Review",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/study-plan/{{PLAN_ID}}/submit",
+          "pathParams": { "PLAN_ID": 1 },
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "study-plan-submit-success",
+              "name": "Success - Submit PENDING plan for advisor review",
+              "path": "{{BASE_URL}}/api/study-plan/1/submit",
+              "expectedStatus": 200
+            },
+            {
+              "id": "study-plan-submit-not-found",
+              "name": "Fail - Plan not found",
+              "path": "{{BASE_URL}}/api/study-plan/99999/submit",
+              "expectedStatus": 404
+            },
+            {
+              "id": "study-plan-submit-already-submitted",
+              "name": "Fail - Plan already submitted",
+              "note": "Submitting a plan that is already APPROVED or REJECTED",
+              "path": "{{BASE_URL}}/api/study-plan/1/submit",
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "message": "Plan already submitted" }
+            },
+            {
+              "id": "study-plan-submit-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "study-plan-review",
+          "name": "Review Study Plan (Advisor)",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/study-plan/{{PLAN_ID}}/review",
+          "pathParams": { "PLAN_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "study-plan-review-approve",
+              "name": "Success - Advisor approves plan",
+              "path": "{{BASE_URL}}/api/study-plan/1/review",
+              "body": {
+                "status": "APPROVED",
+                "feedback": "Looks good! Well planned."
+              },
+              "expectedStatus": 200,
+              "expectedBody": { "plan_status": "APPROVED" }
+            },
+            {
+              "id": "study-plan-review-reject",
+              "name": "Success - Advisor rejects plan with feedback",
+              "path": "{{BASE_URL}}/api/study-plan/1/review",
+              "body": {
+                "status": "REJECTED",
+                "feedback": "You have not met the prerequisites for CS301. Please revise your plan."
+              },
+              "expectedStatus": 200,
+              "expectedBody": { "plan_status": "REJECTED" }
+            },
+            {
+              "id": "study-plan-review-already-reviewed",
+              "name": "Fail - Plan already reviewed",
+              "path": "{{BASE_URL}}/api/study-plan/1/review",
+              "body": { "status": "APPROVED" },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false, "message": "Plan already reviewed" }
+            },
+            {
+              "id": "study-plan-review-not-found",
+              "name": "Fail - Plan not found",
+              "path": "{{BASE_URL}}/api/study-plan/99999/review",
+              "body": { "status": "APPROVED" },
+              "expectedStatus": 404
+            },
+            {
+              "id": "study-plan-review-validation-invalid-status",
+              "name": "Validation Error - invalid status value",
+              "path": "{{BASE_URL}}/api/study-plan/1/review",
+              "body": { "status": "MAYBE" },
+              "expectedStatus": 400
+            },
+            {
+              "id": "study-plan-review-wrong-role",
+              "name": "Fail - STUDENT cannot review plan",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "body": { "status": "APPROVED" },
+              "expectedStatus": 403
+            },
+            {
+              "id": "study-plan-review-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "study-plan-advisor-pending",
+          "name": "Get Pending Plans (Advisor)",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/study-plan/advisor/pending",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "study-plan-advisor-pending-success",
+              "name": "Success - Advisor gets all pending plans",
+              "expectedStatus": 200,
+              "expectedBody": "<array of pending study plans with student and course details>"
+            },
+            {
+              "id": "study-plan-advisor-pending-wrong-role",
+              "name": "Fail - STUDENT cannot access pending plans",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            },
+            {
+              "id": "study-plan-advisor-pending-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "study-plan-generate",
+          "name": "Generate Recommended Study Plan",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/study-plan/generate",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "study-plan-generate-success",
+              "name": "Success - Generate recommended courses based on completed prerequisites",
+              "expectedStatus": 200,
+              "expectedBody": {
+                "success": true,
+                "data": {
+                  "totalCredits": "<number>",
+                  "courses": "<array of recommended courses>"
+                }
+              }
+            },
+            {
+              "id": "study-plan-generate-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "study-plan-generate-wrong-role",
+              "name": "Fail - ADVISOR cannot generate student plan",
+              "headers": { "Authorization": "Bearer {{ADVISOR_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "recommendations",
+      "description": "Course recommendations for students (optional semester)",
+      "requests": [
+        {
+          "id": "recommendations-get",
+          "name": "Get Recommendations",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/recommendations",
+          "auth": "bearer",
+          "authRole": "STUDENT",
+          "headers": {
+            "Authorization": "Bearer {{STUDENT_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "recommendations-get-success",
+              "name": "Success - Get recommendations (all / default semester)",
+              "expectedStatus": 200,
+              "expectedBody": "<array of recommended courses with credits and prerequisites>"
+            },
+            {
+              "id": "recommendations-get-with-semester",
+              "name": "Success - Get recommendations for specific semester",
+              "path": "{{BASE_URL}}/api/recommendations?semesterId=1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "recommendations-get-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "recommendations-get-wrong-role",
+              "name": "Fail - ADVISOR cannot access",
+              "headers": { "Authorization": "Bearer {{ADVISOR_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "advisor",
+      "description": "Advisor profile, dashboard, and my students",
+      "requests": [
+        {
+          "id": "advisor-me",
+          "name": "Get My Profile (Advisor)",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/advisor/me",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "advisor-me-success",
+              "name": "Success - Get advisor profile",
+              "expectedStatus": 200,
+              "expectedBody": "<advisor with user, office_hours, bio, dept>"
+            },
+            {
+              "id": "advisor-me-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "advisor-me-wrong-role",
+              "name": "Fail - STUDENT cannot access",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "advisor-me-update",
+          "name": "Update My Profile (Advisor)",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/advisor/me",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "advisor-me-update-success",
+              "name": "Success - Update office_hours and bio",
+              "body": {
+                "office_hours": "Sun-Tue 10-12",
+                "bio": "PhD in CS"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "id": "advisor-me-update-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "advisor-dashboard",
+          "name": "Get Advisor Dashboard",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/advisor/dashboard",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "advisor-dashboard-success",
+              "name": "Success - Dashboard counts and recent plan requests",
+              "expectedStatus": 200,
+              "expectedBody": "<counts and recent plan requests>"
+            },
+            {
+              "id": "advisor-dashboard-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "advisor-dashboard-wrong-role",
+              "name": "Fail - STUDENT cannot access",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "advisor-students",
+          "name": "Get My Students List",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/advisor/students",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "advisor-students-success",
+              "name": "Success - List students assigned to advisor",
+              "expectedStatus": 200,
+              "expectedBody": "<array of students with user info>"
+            },
+            {
+              "id": "advisor-students-with-status",
+              "name": "Success - Filter by status (optional)",
+              "path": "{{BASE_URL}}/api/advisor/students?status=ACTIVE",
+              "expectedStatus": 200
+            },
+            {
+              "id": "advisor-students-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "advisor-students-by-id",
+          "name": "Get My Student by ID",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/advisor/students/{{STUDENT_ID}}",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "advisor-students-by-id-success",
+              "name": "Success - Get one assigned student detail",
+              "path": "{{BASE_URL}}/api/advisor/students/1",
+              "expectedStatus": 200
+            },
+            {
+              "id": "advisor-students-by-id-not-found",
+              "name": "Fail - Student not found or not assigned",
+              "path": "{{BASE_URL}}/api/advisor/students/99999",
+              "expectedStatus": 404
+            },
+            {
+              "id": "advisor-students-by-id-invalid",
+              "name": "Validation Error - non-numeric studentId",
+              "path": "{{BASE_URL}}/api/advisor/students/abc",
+              "expectedStatus": 400
+            },
+            {
+              "id": "advisor-students-by-id-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "messages",
+      "description": "Advisor messages - conversations with students",
+      "requests": [
+        {
+          "id": "messages-conversations",
+          "name": "Get Conversations List",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/advisor/messages/conversations",
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "messages-conversations-success",
+              "name": "Success - List conversations with students",
+              "expectedStatus": 200,
+              "expectedBody": "<array of conversations with last message and student info>"
+            },
+            {
+              "id": "messages-conversations-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "messages-conversations-wrong-role",
+              "name": "Fail - STUDENT cannot access",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "messages-get",
+          "name": "Get Messages with Student",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/advisor/messages/conversations/{{STUDENT_ID}}/messages",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "messages-get-success",
+              "name": "Success - Get messages with student",
+              "path": "{{BASE_URL}}/api/advisor/messages/conversations/1/messages",
+              "expectedStatus": 200,
+              "expectedBody": "<array of messages>"
+            },
+            {
+              "id": "messages-get-invalid-id",
+              "name": "Validation Error - non-numeric studentId",
+              "path": "{{BASE_URL}}/api/advisor/messages/conversations/abc/messages",
+              "expectedStatus": 400
+            },
+            {
+              "id": "messages-get-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        },
+        {
+          "id": "messages-send",
+          "name": "Send Message to Student",
+          "method": "POST",
+          "path": "{{BASE_URL}}/api/advisor/messages/conversations/{{STUDENT_ID}}/messages",
+          "pathParams": { "STUDENT_ID": 1 },
+          "auth": "bearer",
+          "authRole": "ADVISOR",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADVISOR_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "messages-send-success",
+              "name": "Success - Send message",
+              "path": "{{BASE_URL}}/api/advisor/messages/conversations/1/messages",
+              "body": { "body": "Hello, please check your study plan." },
+              "expectedStatus": 201
+            },
+            {
+              "id": "messages-send-validation-empty",
+              "name": "Validation Error - empty body",
+              "body": { "body": "" },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            },
+            {
+              "id": "messages-send-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "admin",
+      "description": "Admin portal - overview and system settings",
+      "requests": [
+        {
+          "id": "admin-overview",
+          "name": "Admin System Overview",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/admin/overview",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "admin-overview-success",
+              "name": "Success - Overview tiles + charts + recent activity",
+              "expectedStatus": 200,
+              "expectedBody": "<overview payload: totals, systemLoad, studentsPerDepartment, recentActivity>"
+            },
+            {
+              "id": "admin-overview-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "admin-overview-wrong-role",
+              "name": "Fail - STUDENT cannot access",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "admin-system-settings-get",
+          "name": "Get System Settings",
+          "method": "GET",
+          "path": "{{BASE_URL}}/api/admin/system-settings",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "admin-system-settings-get-success",
+              "name": "Success - Get persisted settings + performance snapshot",
+              "expectedStatus": 200,
+              "expectedBody": {
+                "general": {
+                  "systemName": "CogniAdvisor",
+                  "academicYear": "2025/2026",
+                  "defaultCreditLimit": 21,
+                  "semesterDurationWeeks": 16
+                },
+                "aiEngine": {
+                  "recommendationSensitivity": 0.7,
+                  "riskDetectionLevel": "Medium",
+                  "gpaWarningThreshold": 2.5,
+                  "aiModelStatus": "active",
+                  "metrics": {
+                    "totalCourses": "<number>",
+                    "recommendationsGenerated": "<number>",
+                    "successRate": "<number (percentage)>"
+                  }
+                },
+                "permissions": {
+                  "STUDENT": { "viewPlans": true, "editPlans": true, "approvePlans": false, "sendAlerts": false, "manageCourses": false, "systemAccess": false },
+                  "ADVISOR": { "viewPlans": true, "editPlans": false, "approvePlans": true, "sendAlerts": true, "manageCourses": false, "systemAccess": false },
+                  "ADMIN": { "viewPlans": true, "editPlans": true, "approvePlans": true, "sendAlerts": true, "manageCourses": true, "systemAccess": true }
+                },
+                "security": {
+                  "enableTwoFactorAuthGlobally": false,
+                  "suspiciousActivityDetection": true,
+                  "passwordPolicyMinLength": 8,
+                  "sessionTimeoutMinutes": 30
+                },
+                "performance": {
+                  "serverLoad": "<number (percentage)>",
+                  "cpuUsage": "<number (process count or PID)>",
+                  "databaseHealth": "<number (percentage)>",
+                  "responseTimeMs": "<number (milliseconds)>"
+                }
+              }
+            },
+            {
+              "id": "admin-system-settings-get-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "admin-system-settings-get-wrong-role",
+              "name": "Fail - ADVISOR cannot access",
+              "headers": { "Authorization": "Bearer {{ADVISOR_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        },
+        {
+          "id": "admin-system-settings-patch",
+          "name": "Update System Settings",
+          "method": "PATCH",
+          "path": "{{BASE_URL}}/api/admin/system-settings",
+          "auth": "bearer",
+          "authRole": "ADMIN",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {{ADMIN_TOKEN}}"
+          },
+          "scenarios": [
+            {
+              "id": "admin-system-settings-patch-success",
+              "name": "Success - Update some settings",
+              "body": {
+                "general": { "defaultCreditLimit": 24 },
+                "security": { "sessionTimeoutMinutes": 45 }
+              },
+              "expectedStatus": 200,
+              "expectedBody": { "message": "Settings updated successfully", "updatedKeys": "<array>" }
+            },
+            {
+              "id": "admin-system-settings-patch-validation",
+              "name": "Validation Error - invalid gpaWarningThreshold",
+              "body": {
+                "aiEngine": { "gpaWarningThreshold": 10 }
+              },
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            },
+            {
+              "id": "admin-system-settings-patch-empty",
+              "name": "Fail - Empty body",
+              "body": {},
+              "expectedStatus": 400,
+              "expectedBody": { "success": false }
+            },
+            {
+              "id": "admin-system-settings-patch-no-auth",
+              "name": "Fail - No token",
+              "headers": {},
+              "expectedStatus": 401
+            },
+            {
+              "id": "admin-system-settings-patch-wrong-role",
+              "name": "Fail - STUDENT cannot access",
+              "headers": { "Authorization": "Bearer {{STUDENT_TOKEN}}" },
+              "expectedStatus": 403
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalEndpoints": 64,
+    "totalScenarios": 202,
+    "breakdown": {
+      "health": { "endpoints": 1, "scenarios": 2 },
+      "auth": { "endpoints": 2, "scenarios": 7 },
+      "users": { "endpoints": 5, "scenarios": 18 },
+      "students": { "endpoints": 6, "scenarios": 17 },
+      "courses": { "endpoints": 8, "scenarios": 19 },
+      "departments": { "endpoints": 3, "scenarios": 8 },
+      "enrollments": { "endpoints": 2, "scenarios": 11 },
+      "grades": { "endpoints": 1, "scenarios": 5 },
+      "progress": { "endpoints": 1, "scenarios": 4 },
+      "semesters": { "endpoints": 5, "scenarios": 12 },
+      "semester-records": { "endpoints": 4, "scenarios": 9 },
+      "feedback": { "endpoints": 3, "scenarios": 9 },
+      "notifications": { "endpoints": 4, "scenarios": 9 },
+      "study-plan": { "endpoints": 7, "scenarios": 33 },
+      "recommendations": { "endpoints": 1, "scenarios": 4 },
+      "advisor": { "endpoints": 5, "scenarios": 15 },
+      "messages": { "endpoints": 3, "scenarios": 9 },
+      "admin": { "endpoints": 3, "scenarios": 11 }
+    }
+  }
+}

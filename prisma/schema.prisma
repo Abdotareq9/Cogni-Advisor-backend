@@ -1,0 +1,270 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  student_id         Int           @id @default(autoincrement())
+  dept_id            Int?
+  advisor_id         Int?
+  major_type         String?       @db.VarChar(50)
+  level              Int           @default(1)
+  cumulative_gpa     Decimal       @default(0.00) @db.Decimal(3, 2)
+  total_earned_hours Int           @default(0)
+  status             StudentStatus @default(ACTIVE)
+
+  user     User        @relation(fields: [student_id], references: [user_id])
+  dept     Department? @relation(fields: [dept_id], references: [dept_id], onDelete: SetNull)
+  advisor  Advisor?    @relation("AdvisorStudents", fields: [advisor_id], references: [advisor_id], onDelete: SetNull)
+
+  studyPlans      StudyPlan[]
+  semesterRecords SemesterRecord[]
+  feedbacks       Feedback[]
+  enrollments     Enrollment[]
+}
+
+model Advisor {
+  advisor_id   Int     @id @default(autoincrement())
+  dept_id      Int?
+  office_hours String? @db.VarChar(200)
+  bio          String? @db.Text
+
+  user User        @relation(fields: [advisor_id], references: [user_id])
+  dept Department? @relation(fields: [dept_id], references: [dept_id], onDelete: SetNull)
+
+  feedbacks  Feedback[]
+  studyPlans StudyPlan[] @relation("AdvisorPlans")
+  students   Student[]   @relation("AdvisorStudents")
+}
+
+model Admin {
+  admin_id Int  @id @default(autoincrement())
+  user     User @relation(fields: [admin_id], references: [user_id])
+}
+
+model City {
+  city_id   Int    @id @default(autoincrement())
+  city_name String @unique @db.VarChar(50)
+
+  users User[]
+}
+
+model Department {
+  dept_id   Int     @id @default(autoincrement())
+  dept_name String  @unique @db.VarChar(100)
+  dept_code String? @unique @db.VarChar(10)
+
+  students Student[]
+  advisors Advisor[]
+}
+
+model User {
+  user_id        Int      @id @default(autoincrement())
+  first_name     String   @db.VarChar(50)
+  middle_name    String?  @db.VarChar(50)
+  last_name      String   @db.VarChar(50)
+  national_id    String   @unique @db.VarChar(20)
+  personal_email String   @unique @db.VarChar(100)
+  password_hash  String   @db.VarChar(255)
+  gender         String?  @db.VarChar(10)
+  city_id        Int?
+  street_address String?
+  created_at     DateTime @default(now())
+  role           UserRole
+
+  city          City?          @relation(fields: [city_id], references: [city_id], onDelete: SetNull)
+  phones        UserPhone[]
+  student       Student?
+  advisor       Advisor?
+  admin         Admin?
+  notifications Notification[]
+  sentMessages     Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageRecipient")
+  systemSettingsUpdated SystemSetting[] @relation("SystemSettingUpdatedBy")
+  auditLogs            AuditLog[]      @relation("AuditActor")
+}
+
+model SystemSetting {
+  setting_id Int                 @id @default(autoincrement())
+  key        String              @unique @db.VarChar(100)
+  category   SystemSettingCategory
+  value      Json
+  updated_at DateTime            @updatedAt
+  updated_by Int?
+
+  updatedBy User? @relation("SystemSettingUpdatedBy", fields: [updated_by], references: [user_id], onDelete: SetNull)
+}
+
+model AuditLog {
+  audit_id   Int      @id @default(autoincrement())
+  actor_id   Int?
+  action     String   @db.VarChar(60)
+  entity_type String? @db.VarChar(60)
+  entity_id  String?  @db.VarChar(60)
+  metadata   Json?
+  created_at DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actor_id], references: [user_id], onDelete: SetNull)
+}
+
+model UserPhone {
+  phone_id     Int    @id @default(autoincrement())
+  user_id      Int
+  phone_number String @db.VarChar(20)
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+model Course {
+  course_id              Int     @id @default(autoincrement())
+  course_code            String  @unique @db.VarChar(20)
+  course_name            String  @db.VarChar(150)
+  credits                Int
+  required_hours_to_take Int?
+  is_available           Boolean @default(true)
+
+  prerequisites CoursePrerequisite[] @relation("CoursePrereq")
+  requiredFor   CoursePrerequisite[] @relation("PrereqCourse")
+
+  planDetails PlanDetail[]
+  enrollments Enrollment[]
+}
+
+model CoursePrerequisite {
+  course_id        Int
+  prereq_course_id Int
+
+  course Course @relation("CoursePrereq", fields: [course_id], references: [course_id])
+  prereq Course @relation("PrereqCourse", fields: [prereq_course_id], references: [course_id])
+
+  @@id([course_id, prereq_course_id])
+}
+
+model Semester {
+  semester_id   Int       @id @default(autoincrement())
+  semester_name String?   @db.VarChar(50)
+  start_date    DateTime?
+  end_date      DateTime?
+
+  studyPlans      StudyPlan[]
+  semesterRecords SemesterRecord[]
+  enrollments     Enrollment[]
+}
+
+model StudyPlan {
+  plan_id     Int        @id @default(autoincrement())
+  student_id  Int
+  semester_id Int
+  advisor_id  Int?
+  plan_status PlanStatus @default(PENDING)
+  total_hours Int        @default(0)
+  created_at  DateTime   @default(now())
+  feedback    String?    @db.Text
+
+  student  Student  @relation(fields: [student_id], references: [student_id])
+  semester Semester @relation(fields: [semester_id], references: [semester_id])
+  advisor  Advisor? @relation("AdvisorPlans", fields: [advisor_id], references: [advisor_id])
+
+  details PlanDetail[]
+
+  @@unique([student_id, semester_id])
+}
+
+model PlanDetail {
+  plan_id   Int
+  course_id Int
+
+  plan   StudyPlan @relation(fields: [plan_id], references: [plan_id])
+  course Course    @relation(fields: [course_id], references: [course_id])
+
+  @@id([plan_id, course_id])
+}
+
+model SemesterRecord {
+  record_id        Int      @id @default(autoincrement())
+  student_id       Int
+  semester_id      Int
+  semester_gpa     Decimal? @db.Decimal(3, 2)
+  registered_hours Int?
+
+  student  Student  @relation(fields: [student_id], references: [student_id])
+  semester Semester @relation(fields: [semester_id], references: [semester_id])
+}
+
+model Feedback {
+  feed_id    Int      @id @default(autoincrement())
+  student_id Int
+  advisor_id Int
+  message    String?
+  created_at DateTime @default(now())
+
+  student Student @relation(fields: [student_id], references: [student_id])
+  advisor Advisor @relation(fields: [advisor_id], references: [advisor_id])
+}
+
+model Notification {
+  notification_id Int      @id @default(autoincrement())
+  recipient_id    Int
+  title           String?  @db.VarChar(150)
+  body            String?
+  is_read         Boolean  @default(false)
+  sent_at         DateTime @default(now())
+
+  recipient User @relation(fields: [recipient_id], references: [user_id])
+}
+
+model Message {
+  message_id   Int      @id @default(autoincrement())
+  sender_id    Int
+  recipient_id Int
+  body         String   @db.Text
+  is_read      Boolean  @default(false)
+  sent_at      DateTime @default(now())
+
+  sender    User @relation("MessageSender", fields: [sender_id], references: [user_id], onDelete: Cascade)
+  recipient User @relation("MessageRecipient", fields: [recipient_id], references: [user_id], onDelete: Cascade)
+}
+
+model Enrollment {
+  enrollment_id Int     @id @default(autoincrement())
+  student_id    Int
+  course_id     Int
+  semester_id   Int?
+  status        String  @default("ENROLLED") @db.VarChar(20)
+  grade         String? @db.VarChar(2)
+
+  student  Student   @relation(fields: [student_id], references: [student_id])
+  course   Course    @relation(fields: [course_id], references: [course_id])
+  semester Semester? @relation(fields: [semester_id], references: [semester_id])
+
+  @@unique([student_id, course_id])
+}
+
+enum UserRole {
+  STUDENT
+  ADVISOR
+  ADMIN
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum PlanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SystemSettingCategory {
+  GENERAL
+  AI_ENGINE
+  PERMISSIONS
+  SECURITY
+}
