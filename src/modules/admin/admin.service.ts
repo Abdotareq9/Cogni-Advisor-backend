@@ -4,7 +4,7 @@ import { SystemSettingCategory } from "@prisma/client";
 import { AppError } from "../../utils/AppError.js";
 
 export const getOverview = async () => {
-  const [totalUsers, activeCourses, departments, auditLogs] = await Promise.all([
+  const [totalUsers, activeCourses, departments, auditLogs, database] = await Promise.all([
     prisma.user.count(),
     prisma.course.count({ where: { is_available: true } }),
     prisma.department.findMany({
@@ -21,15 +21,9 @@ export const getOverview = async () => {
       include: {
         actor: { select: { user_id: true, first_name: true, last_name: true, role: true } }
       }
-    })
+    }),
+    getDbStatus()
   ]);
-
-  let database: "connected" | "disconnected" = "connected";
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-  } catch {
-    database = "disconnected";
-  }
 
   const mem = process.memoryUsage();
 

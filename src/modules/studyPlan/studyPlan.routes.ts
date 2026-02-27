@@ -48,7 +48,7 @@ router.patch(
   validate(reviewPlanSchema),
   asyncHandler(reviewPlanHandler)
 );
-router.get("/advisor/pending", authenticate, authorize("ADVISOR"), getPendingPlansHandler);
+router.get("/advisor/pending", authenticate, authorize("ADVISOR"), asyncHandler(getPendingPlansHandler));
 
 router.get(
   "/generate",

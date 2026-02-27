@@ -16,8 +16,8 @@ router.post(
   asyncHandler(controller.createDepartmentHandler)
 );
 
-router.get("/",authenticate,controller.getDepartmentsHandler);
+router.get("/",authenticate,asyncHandler(controller.getDepartmentsHandler));
 
-router.delete("/:id",authenticate,authorize("ADMIN"),controller.deleteDepartmentHandler);
+router.delete("/:id",authenticate,authorize("ADMIN"),asyncHandler(controller.deleteDepartmentHandler));
 
 export default router;

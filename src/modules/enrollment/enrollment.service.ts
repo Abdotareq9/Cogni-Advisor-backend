@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma.js";
 import { AppError } from "../../utils/AppError.js";
+import { recalculateStudentGPA } from "../../utils/gpaCalculator.js";
 
 
 const checkPrerequisites = async (
@@ -99,53 +100,9 @@ export const markCoursePassed = async (
     }
   });
 
-  // Recalculate GPA
-  await recalculateGPA(studentId);
+  // Recalculate GPA using shared utility
+  await recalculateStudentGPA(studentId);
 
   return { message: "Course marked as PASSED" };
 };
-
-const gradePoints: any = {
-  "A": 4,
-  "B": 3,
-  "C": 2,
-  "D": 1,
-  "F": 0
-};
-
-const recalculateGPA = async (studentId: number) => {
-
-  const enrollments = await prisma.enrollment.findMany({
-    where: {
-      student_id: studentId,
-      status: "PASSED"
-    },
-    include: { course: true }
-  });
-
-  let totalPoints = 0;
-  let totalCredits = 0;
-
-  for (const e of enrollments) {
-    const points = e.grade
-  ? gradePoints[e.grade as keyof typeof gradePoints] || 0
-  : 0;
-
-    totalPoints += points * e.course.credits;
-    totalCredits += e.course.credits;
-  }
-
-  const gpa =
-    totalCredits === 0
-      ? 0
-      : parseFloat((totalPoints / totalCredits).toFixed(2));
-
-  await prisma.student.update({
-    where: { student_id: studentId },
-    data: {
-      cumulative_gpa: gpa
-    }
-  });
-};
-
 

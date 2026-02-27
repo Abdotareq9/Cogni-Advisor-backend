@@ -35,6 +35,12 @@ coverage/
 .nyc_output/
 *.lcov
 
+# Test build artifacts
+tests/**/*.js
+tests/**/*.d.ts
+tests/**/*.map
+!tests/**/*.test.ts
+
 # IDEs and editors
 .vscode/
 .idea/

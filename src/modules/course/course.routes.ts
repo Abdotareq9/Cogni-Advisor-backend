@@ -19,8 +19,8 @@ router.post(
   validate(createCourseSchema),
   asyncHandler(controller.createCourseHandler)
 );
-router.get("/", authenticate, controller.getCoursesHandler);
-router.get("/:id", authenticate, controller.getCourseByIdHandler);
+router.get("/", authenticate, asyncHandler(controller.getCoursesHandler));
+router.get("/:id", authenticate, asyncHandler(controller.getCourseByIdHandler));
 router.put(
   "/:id",
   authenticate,
@@ -28,9 +28,9 @@ router.put(
   validate(updateCourseSchema),
   asyncHandler(controller.updateCourseHandler)
 );
-router.delete("/:id", authenticate, authorize("ADMIN"), controller.deleteCourseHandler);
-router.patch("/:id/toggle", authenticate, authorize("ADMIN"), controller.toggleAvailabilityHandler);
-router.get("/:id/details", authenticate, controller.getCourseDetailsHandler);
+router.delete("/:id", authenticate, authorize("ADMIN"), asyncHandler(controller.deleteCourseHandler));
+router.patch("/:id/toggle", authenticate, authorize("ADMIN"), asyncHandler(controller.toggleAvailabilityHandler));
+router.get("/:id/details", authenticate, asyncHandler(controller.getCourseDetailsHandler));
 
 router.post(
   "/add-prerequisite",

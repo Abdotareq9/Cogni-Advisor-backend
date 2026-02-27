@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import { Router } from "express";
 import * as controller from "./feedback.controller.js";
 import { authenticate } from "../../middlewares/auth.middleware.js";
@@ -10,7 +10,7 @@ import { createFeedbackSchema, studentIdParamSchema } from "./feedback.validatio
 const router = Router();
 
 /** ADVISOR أو الطالب نفسه فقط لجدولة /student/:studentId */
-const allowAdvisorOrStudentOwner = (req: Request, res: Response, next: NextFunction) => {
+const allowAdvisorOrStudentOwner = (req: Request, res: Response, next: () => void) => {
   const u = (req as any).user;
   if (u?.role === "ADVISOR") return next();
   if (u?.role === "STUDENT" && Number((req as any).params.studentId) === u?.id) return next();
