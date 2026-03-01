@@ -49,6 +49,22 @@ export const deactivateStudent = async (id: number) => {
   });
 };
 
+export const activateStudent = async (id: number) => {
+  const student = await prisma.student.findUnique({
+    where: { student_id: id }
+  });
+
+  if (!student)
+    throw new AppError("Student not found", 404);
+
+  return prisma.student.update({
+    where: { student_id: id },
+    data: {
+      status: "ACTIVE"
+    }
+  });
+};
+
 
 export const getAcademicSummary = async (studentId: number) => {
 
@@ -93,11 +109,9 @@ export const getMyProfile = async (studentId: number) => {
     include: {
       user: {
         include: {
-          phones: true,
-          city: true
+          phones: true
         }
-      },
-      dept: true
+      }
     }
   });
 
@@ -122,7 +136,6 @@ export const updateMyProfile = async (
     first_name?: string;
     last_name?: string;
     street_address?: string | null;
-    city_id?: number | null;
     phones?: string[];
   }
 ) => {
@@ -141,7 +154,6 @@ export const updateMyProfile = async (
   if (userFields.first_name !== undefined) updatePayload.first_name = userFields.first_name;
   if (userFields.last_name !== undefined) updatePayload.last_name = userFields.last_name;
   if (userFields.street_address !== undefined) updatePayload.street_address = userFields.street_address;
-  if (userFields.city_id !== undefined) updatePayload.city_id = userFields.city_id;
 
   if (Object.keys(updatePayload).length > 0) {
     await prisma.user.update({

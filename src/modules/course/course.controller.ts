@@ -87,3 +87,17 @@ export const getCourseDetailsHandler = async (
     res.json(course);
 };
 
+export const removePrerequisiteHandler = async (
+  req: Request,
+  res: Response
+) => {
+    const { courseId, prerequisiteId } = req.body;
+
+    await courseService.removePrerequisite(
+      courseId,
+      prerequisiteId
+    );
+
+    res.json({ message: "Prerequisite removed successfully" });
+};
+

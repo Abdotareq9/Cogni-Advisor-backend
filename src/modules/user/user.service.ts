@@ -23,7 +23,6 @@ export const createUser = async (data: any) => {
       personal_email: data.personal_email,
       password_hash: hashedPassword,
       gender: data.gender,
-      city_id: data.city_id,
       street_address: data.street_address,
       role: data.role as UserRole
     }

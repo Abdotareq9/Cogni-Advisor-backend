@@ -14,26 +14,21 @@ export const getMyProfile = async (advisorId: number) => {
           personal_email: true,
           gender: true,
           street_address: true,
-          city_id: true,
-          city: true,
           phones: true
         }
-      },
-      dept: true
+      }
     }
   });
 
   if (!advisor) throw new AppError("Advisor not found", 404);
 
-  const { user, dept, ...advisorData } = advisor;
+  const { user, ...advisorData } = advisor;
   const fullName = [user.first_name, user.middle_name, user.last_name].filter(Boolean).join(" ");
   return {
     advisor_id: advisorData.advisor_id,
     advisor_code: `ADV-${String(advisorData.advisor_id).padStart(4, "0")}`,
     office_hours: advisorData.office_hours ?? null,
     bio: advisorData.bio ?? null,
-    dept_id: advisorData.dept_id ?? null,
-    department: dept ? { dept_id: dept.dept_id, dept_name: dept.dept_name } : null,
     user: {
       full_name: fullName,
       first_name: user.first_name,
@@ -41,8 +36,6 @@ export const getMyProfile = async (advisorId: number) => {
       personal_email: user.personal_email,
       gender: user.gender ?? null,
       street_address: user.street_address ?? null,
-      city_id: user.city_id ?? null,
-      city: user.city ?? null,
       phones: user.phones.map((p) => p.phone_number)
     }
   };
@@ -111,8 +104,7 @@ export const getMyStudents = async (
   const students = await prisma.student.findMany({
     where,
     include: {
-      user: { select: { first_name: true, last_name: true } },
-      dept: { select: { dept_name: true } }
+      user: { select: { first_name: true, last_name: true } }
     },
     orderBy: [{ user: { last_name: "asc" } }, { user: { first_name: "asc" } }]
   });
@@ -128,7 +120,6 @@ export const getMyStudents = async (
       student_id: s.student_id,
       student_code: `S${String(s.student_id).padStart(7, "0")}`,
       full_name: `${s.user.first_name} ${s.user.last_name}`,
-      department: s.dept?.dept_name ?? null,
       level: s.level,
       cumulative_gpa: gpa,
       status: s.status,
@@ -141,8 +132,7 @@ export const getMyStudentById = async (advisorId: number, studentId: number) => 
   const student = await prisma.student.findFirst({
     where: { student_id: studentId, advisor_id: advisorId },
     include: {
-      user: { include: { phones: true, city: true } },
-      dept: true
+      user: { include: { phones: true } }
     }
   });
 

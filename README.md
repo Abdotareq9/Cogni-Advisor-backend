@@ -109,6 +109,12 @@ npm run test:watch
 npm run test:coverage
 ```
 
+## 📖 System Documentation
+
+**دليل النظام الشامل (عربي):** [`docs/SYSTEM-GUIDE.md`](docs/SYSTEM-GUIDE.md) - يحتوي على شرح كامل للنظام، الوحدات، تدفق العمل، والتثبيت.
+
+**فهرس التوثيق:** [`docs/README.md`](docs/README.md) - دليل جميع الوثائق المتاحة.
+
 ## 📊 Project Structure
 
 ```
@@ -130,7 +136,6 @@ src/
 │   ├── advisor/     # Advisor dashboard, students list
 │   ├── admin/       # System overview, settings, audit logs
 │   ├── course/      # Course catalog management
-│   ├── department/  # Department management
 │   ├── semester/    # Semester & academic year
 │   ├── enrollment/  # Student enrollments & grades
 │   ├── grade/       # Grade assignment
@@ -138,7 +143,12 @@ src/
 │   ├── progress/    # Academic progress tracking
 │   ├── notification/# Notification system
 │   ├── feedback/    # Advisor feedback
-│   └── semesterRecord/ # Semester records
+│   ├── semesterRecord/ # Semester records
+│   ├── ai/          # AI integration (infrastructure)
+│   ├── alert/       # Early warning system
+│   ├── graduation/  # Graduation tracker
+│   ├── review/      # Course reviews
+│   └── analytics/   # Performance analytics
 ├── utils/           # Utility functions & helpers
 │   ├── AppError.ts       # Custom error class
 │   ├── asyncHandler.ts   # Async route wrapper
@@ -181,6 +191,7 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 - `GET /api/students/:id` - Get student by ID (Admin)
 - `PUT /api/students/:id` - Update student (Admin)
 - `PATCH /api/students/:id/deactivate` - Deactivate student (Admin)
+- `PATCH /api/students/:id/activate` - Reactivate student (Admin)
 
 ### 📚 Courses
 - `GET /api/courses` - List all courses
@@ -191,11 +202,8 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 - `DELETE /api/courses/:id` - Delete course (Admin)
 - `PATCH /api/courses/:id/toggle` - Toggle availability (Admin)
 - `POST /api/courses/add-prerequisite` - Add prerequisite (Admin)
-
-### 🏢 Departments
-- `GET /api/departments` - List all departments
-- `POST /api/departments` - Create department (Admin)
-- `DELETE /api/departments/:id` - Delete department (Admin)
+- `DELETE /api/courses/remove-prerequisite` - Remove prerequisite (Admin)
+- `GET /api/courses/:id/stats` - Get course statistics
 
 ### 📅 Semesters
 - `GET /api/semesters` - List all semesters
@@ -255,9 +263,40 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 ### 🏥 Health Check
 - `GET /api/health` - System health check
 
+### 🤖 AI Module (Infrastructure)
+- `POST /api/ai/chat` - Send query (Student)
+- `POST /api/ai/suggest-plan` - Request plan suggestion (Student)
+- `POST /api/ai/predict-gpa` - Predict GPA (Student)
+- `GET /api/ai/risk-analysis/:studentId` - Risk analysis (Admin/Advisor)
+- `GET /api/ai/history` - Interaction history (Student)
+
+### ⚠️ Alerts (Early Warning System)
+- `GET /api/alerts` - All alerts (Admin/Advisor)
+- `GET /api/alerts/student/:studentId` - Student alerts
+- `POST /api/alerts/check/:studentId` - Check and create alerts
+- `PATCH /api/alerts/:id/resolve` - Resolve alert
+
+### 🎓 Graduation Tracker
+- `GET /api/graduation/:studentId` - Graduation overview
+- `GET /api/graduation/:studentId/requirements` - Detailed requirements
+- `GET /api/graduation/:studentId/audit` - Degree audit
+- `POST /api/graduation/requirements` - Create requirement (Admin)
+
+### ⭐ Course Reviews
+- `POST /api/reviews` - Create/update review (Student)
+- `GET /api/reviews/course/:courseId` - Course reviews
+- `GET /api/reviews/my` - My reviews (Student)
+- `DELETE /api/reviews/:id` - Delete review (Student)
+
+### 📈 Performance Analytics
+- `GET /api/analytics/:studentId/overview` - Overview
+- `GET /api/analytics/:studentId/gpa-trend` - GPA trend
+- `GET /api/analytics/:studentId/grade-distribution` - Grade distribution
+- `GET /api/analytics/:studentId/hours-progress` - Hours progress
+
 **📚 Full API Documentation:** Visit `/api-docs` for interactive Swagger UI
 
-**🧪 Test Collection:** Import `test/api-test-collection.json` (64 endpoints, 202 scenarios)
+**🧪 Test Collection:** Import `postman/collection.json` (Postman v2.1 format)
 
 ## 🏗️ Database Schema
 
@@ -315,7 +354,7 @@ docker-compose -f docker-compose.yml up -d
 
 ## 🧪 API Test Collection
 
-A comprehensive test collection is available at `test/api-test-collection.json`:
+A comprehensive test collection is available at `postman/collection.json`:
 
 ### Test Coverage
 - **64 endpoints** across all modules

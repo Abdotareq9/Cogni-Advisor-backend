@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as controller from "./course.controller.js";
+import * as reviewController from "../review/review.controller.js";
 import { authenticate } from "../../middlewares/auth.middleware.js";
 import { authorize } from "../../middlewares/role.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
@@ -7,7 +8,8 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import {
   createCourseSchema,
   updateCourseSchema,
-  addPrerequisiteSchema
+  addPrerequisiteSchema,
+  removePrerequisiteSchema
 } from "./course.validation.js";
 
 const router = Router();
@@ -40,10 +42,18 @@ router.post(
   asyncHandler(controller.addPrerequisiteHandler)
 );
 
+router.delete(
+  "/remove-prerequisite",
+  authenticate,
+  authorize("ADMIN"),
+  validate(removePrerequisiteSchema),
+  asyncHandler(controller.removePrerequisiteHandler)
+);
 
-
-
-
-
+router.get(
+  "/:id/stats",
+  authenticate,
+  asyncHandler(reviewController.getCourseStatsHandler)
+);
 
 export default router;

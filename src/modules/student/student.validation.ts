@@ -11,7 +11,6 @@ export const updateMyProfileSchema = z.object({
     first_name: z.string().min(2).max(50).optional(),
     last_name: z.string().min(2).max(50).optional(),
     street_address: z.string().max(500).nullable().optional(),
-    city_id: z.number().int().positive().nullable().optional(),
     phones: z.array(z.string().max(20)).optional()
   })
 });

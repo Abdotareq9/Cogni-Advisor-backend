@@ -9,7 +9,6 @@ datasource db {
 
 model Student {
   student_id         Int           @id @default(autoincrement())
-  dept_id            Int?
   advisor_id         Int?
   major_type         String?       @db.VarChar(50)
   level              Int           @default(1)
@@ -18,23 +17,24 @@ model Student {
   status             StudentStatus @default(ACTIVE)
 
   user     User        @relation(fields: [student_id], references: [user_id])
-  dept     Department? @relation(fields: [dept_id], references: [dept_id], onDelete: SetNull)
   advisor  Advisor?    @relation("AdvisorStudents", fields: [advisor_id], references: [advisor_id], onDelete: SetNull)
 
   studyPlans      StudyPlan[]
   semesterRecords SemesterRecord[]
   feedbacks       Feedback[]
   enrollments     Enrollment[]
+  aiInteractions  AIInteraction[]
+  alerts          Alert[]
+  graduationProgress GraduationProgress[]
+  courseReviews   CourseReview[]
 }
 
 model Advisor {
   advisor_id   Int     @id @default(autoincrement())
-  dept_id      Int?
   office_hours String? @db.VarChar(200)
   bio          String? @db.Text
 
   user User        @relation(fields: [advisor_id], references: [user_id])
-  dept Department? @relation(fields: [dept_id], references: [dept_id], onDelete: SetNull)
 
   feedbacks  Feedback[]
   studyPlans StudyPlan[] @relation("AdvisorPlans")
@@ -46,22 +46,6 @@ model Admin {
   user     User @relation(fields: [admin_id], references: [user_id])
 }
 
-model City {
-  city_id   Int    @id @default(autoincrement())
-  city_name String @unique @db.VarChar(50)
-
-  users User[]
-}
-
-model Department {
-  dept_id   Int     @id @default(autoincrement())
-  dept_name String  @unique @db.VarChar(100)
-  dept_code String? @unique @db.VarChar(10)
-
-  students Student[]
-  advisors Advisor[]
-}
-
 model User {
   user_id        Int      @id @default(autoincrement())
   first_name     String   @db.VarChar(50)
@@ -71,12 +55,10 @@ model User {
   personal_email String   @unique @db.VarChar(100)
   password_hash  String   @db.VarChar(255)
   gender         String?  @db.VarChar(10)
-  city_id        Int?
   street_address String?
   created_at     DateTime @default(now())
   role           UserRole
 
-  city          City?          @relation(fields: [city_id], references: [city_id], onDelete: SetNull)
   phones        UserPhone[]
   student       Student?
   advisor       Advisor?
@@ -86,6 +68,7 @@ model User {
   receivedMessages Message[] @relation("MessageRecipient")
   systemSettingsUpdated SystemSetting[] @relation("SystemSettingUpdatedBy")
   auditLogs            AuditLog[]      @relation("AuditActor")
+  resolvedAlerts       Alert[]         @relation("AlertResolver")
 }
 
 model SystemSetting {
@@ -132,6 +115,7 @@ model Course {
 
   planDetails PlanDetail[]
   enrollments Enrollment[]
+  courseReviews CourseReview[]
 }
 
 model CoursePrerequisite {
@@ -244,6 +228,75 @@ model Enrollment {
   @@unique([student_id, course_id])
 }
 
+model AIInteraction {
+  interaction_id Int         @id @default(autoincrement())
+  student_id     Int
+  query_type     AIQueryType
+  input_data     Json
+  response_data  Json?
+  status         AIStatus    @default(PENDING)
+  created_at     DateTime    @default(now())
+
+  student Student @relation(fields: [student_id], references: [student_id])
+}
+
+model Alert {
+  alert_id    Int           @id @default(autoincrement())
+  student_id  Int
+  alert_type  AlertType
+  severity    AlertSeverity
+  title       String        @db.VarChar(200)
+  message     String        @db.Text
+  is_resolved Boolean       @default(false)
+  resolved_at DateTime?
+  resolved_by Int?
+  created_at  DateTime      @default(now())
+
+  student    Student @relation(fields: [student_id], references: [student_id])
+  resolvedBy User?   @relation("AlertResolver", fields: [resolved_by], references: [user_id], onDelete: SetNull)
+}
+
+model GraduationRequirement {
+  requirement_id   Int                 @id @default(autoincrement())
+  requirement_name String              @db.VarChar(100)
+  required_hours   Int
+  category         RequirementCategory
+  description      String?             @db.Text
+
+  progress GraduationProgress[]
+}
+
+model GraduationProgress {
+  progress_id     Int @id @default(autoincrement())
+  student_id      Int
+  requirement_id  Int
+  completed_hours Int @default(0)
+
+  student     Student               @relation(fields: [student_id], references: [student_id])
+  requirement GraduationRequirement @relation(fields: [requirement_id], references: [requirement_id])
+
+  @@unique([student_id, requirement_id])
+}
+
+model CourseReview {
+  review_id       Int      @id @default(autoincrement())
+  student_id      Int
+  course_id       Int
+  rating          Int
+  difficulty      Int
+  workload        Int
+  would_recommend Boolean
+  comment         String?  @db.Text
+  is_anonymous    Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  student Student @relation(fields: [student_id], references: [student_id])
+  course  Course  @relation(fields: [course_id], references: [course_id])
+
+  @@unique([student_id, course_id])
+}
+
 enum UserRole {
   STUDENT
   ADVISOR
@@ -267,4 +320,43 @@ enum SystemSettingCategory {
   AI_ENGINE
   PERMISSIONS
   SECURITY
+}
+
+enum AIQueryType {
+  CHAT
+  SUGGEST_PLAN
+  PREDICT_GPA
+  RISK_ANALYSIS
+}
+
+enum AIStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AlertType {
+  LOW_GPA
+  ACADEMIC_PROBATION
+  MISSING_HOURS
+  FAILED_COURSE
+  OVERLOAD
+  NO_ENROLLMENT
+  GRADUATION_DELAY
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequirementCategory {
+  CORE_COURSES
+  MAJOR_COURSES
+  ELECTIVES
+  GENERAL_EDUCATION
+  CAPSTONE
 }

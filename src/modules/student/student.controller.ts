@@ -29,6 +29,15 @@ export const deactivateStudentHandler = async (req: Request,res: Response) => {
     res.json(updated);
 };
 
+export const activateStudentHandler = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    const updated =
+      await studentService.activateStudent(id);
+
+    res.json(updated);
+};
+
 export const getMySummaryHandler = async (
   req: any,
   res: Response

@@ -1,0 +1,1744 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Cogni-Advisor API",
+    "description": "مجموعة كاملة من API endpoints لنظام Cogni-Advisor الأكاديمي",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "System Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/health",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token && response.user) {",
+                  "        const user = response.user;",
+                  "        if (user.role === 'ADMIN') {",
+                  "            pm.collectionVariables.set('ADMIN_TOKEN', response.token);",
+                  "        } else if (user.role === 'ADVISOR') {",
+                  "            pm.collectionVariables.set('ADVISOR_TOKEN', response.token);",
+                  "        } else if (user.role === 'STUDENT') {",
+                  "            pm.collectionVariables.set('STUDENT_TOKEN', response.token);",
+                  "        }",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"12345678901234\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"OldPassword@123\",\n  \"newPassword\": \"NewPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/change-password",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "change-password"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"national_id\": \"12345678901235\",\n  \"personal_email\": \"john.doe@cogni.edu\",\n  \"password\": \"Password@123\",\n  \"role\": \"STUDENT\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/users",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/students/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "students", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/students/me/summary",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "students", "me", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+201234567890\",\n  \"address\": \"123 Main Street, Cairo\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/students/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "students", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student By ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/students/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "students", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Student (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"advisor_id\": 1,\n  \"level\": 2,\n  \"major_type\": \"علوم حاسب\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/students/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "students", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Student (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/students/1/deactivate",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "students", "1", "deactivate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Student (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/students/1/activate",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "students", "1", "activate"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Create Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_code\": \"CS101\",\n  \"course_name\": \"Introduction to Programming\",\n  \"credits\": 3\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/1/details",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "1", "details"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/1/stats",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "1", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Course",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Advanced Programming\",\n  \"credits\": 4,\n  \"description\": \"Advanced programming concepts\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Course",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Course Availability",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/1/toggle",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "1", "toggle"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Prerequisite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": 2,\n  \"prerequisiteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/add-prerequisite",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "add-prerequisite"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Prerequisite",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": 2,\n  \"prerequisiteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/courses/remove-prerequisite",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "courses", "remove-prerequisite"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Enrollments",
+      "item": [
+        {
+          "name": "Enroll in Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/enrollments",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "enrollments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Course as Passed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 1,\n  \"course_id\": 1,\n  \"grade\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/enrollments/mark-passed",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "enrollments", "mark-passed"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Grades",
+      "item": [
+        {
+          "name": "Assign Grade",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 1,\n  \"course_id\": 1,\n  \"grade\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/grades/assign",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "grades", "assign"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Progress",
+      "item": [
+        {
+          "name": "Get Student Progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/progress/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "progress", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Semesters",
+      "item": [
+        {
+          "name": "Create Semester",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester_name\": \"الفصل الأول 2024/2025\",\n  \"start_date\": \"2024-09-15\",\n  \"end_date\": \"2025-01-30\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/semesters",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semesters"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Semesters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/semesters",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semesters"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Semester By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/semesters/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semesters", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Semester",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester_name\": \"الفصل الأول 2024/2025 - محدث\",\n  \"start_date\": \"2024-09-15\",\n  \"end_date\": \"2025-01-30\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/semesters/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semesters", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Semester",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/semesters/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semesters", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Semester Records",
+      "item": [
+        {
+          "name": "Create Semester Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 1,\n  \"semester_id\": 1,\n  \"semester_gpa\": 3.5,\n  \"registered_hours\": 15\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/semester-records",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semester-records"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Records By Student ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/semester-records/student/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semester-records", "student", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Records By Semester ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/semester-records/semester/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semester-records", "semester", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Semester Record",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester_gpa\": 3.7,\n  \"registered_hours\": 18\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/semester-records/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "semester-records", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Feedback",
+      "item": [
+        {
+          "name": "Create Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 1,\n  \"message\": \"تقدم ممتاز هذا الفصل!\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/feedback",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "feedback"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Feedback By Student ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/feedback/student/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "feedback", "student", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Feedback (Advisor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/feedback/my",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "feedback", "my"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/notifications",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "notifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/notifications/1/read",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "notifications", "1", "read"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/notifications/read-all",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "notifications", "read-all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"title\": \"Important Announcement\",\n  \"message\": \"Registration opens next week\",\n  \"type\": \"ANNOUNCEMENT\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/notifications",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "notifications"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Study Plans",
+      "item": [
+        {
+          "name": "Create Study Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semesterId\": 1,\n  \"targetCredits\": 18\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/study-plan",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "study-plan"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current Study Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/study-plan/me/current?semesterId=1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "study-plan", "me", "current"],
+              "query": [
+                {
+                  "key": "semesterId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Course to Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/study-plan/1/add-course",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "study-plan", "1", "add-course"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Study Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/study-plan/1/submit",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "study-plan", "1", "submit"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Review Study Plan (Advisor)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"advisorNotes\": \"Good plan, approved!\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/study-plan/1/review",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "study-plan", "1", "review"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Plans (Advisor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/study-plan/advisor/pending",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "study-plan", "advisor", "pending"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Study Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/study-plan/generate",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "study-plan", "generate"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "item": [
+        {
+          "name": "Get Course Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{STUDENT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/recommendations?semesterId=1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "recommendations"],
+              "query": [
+                {
+                  "key": "semesterId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Advisor",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+201234567890\",\n  \"officeHours\": \"Monday 10-12, Wednesday 2-4\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/dashboard",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "dashboard"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/students",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "students"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/students/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "students", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Get Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/messages/conversations",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "messages", "conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Messages with Student",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/messages/conversations/1/messages",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "messages", "conversations", "1", "messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Message to Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADVISOR_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Let's discuss your study plan tomorrow.\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/advisor/messages/conversations/1/messages",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "advisor", "messages", "conversations", "1", "messages"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/overview",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "overview"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get System Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/system-settings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "system-settings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update System Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"MAX_CREDITS_PER_SEMESTER\",\n  \"value\": \"21\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/system-settings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "system-settings"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "AI Chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"ما هي أفضل المواد للتسجيل في الفصل القادم؟\"\n}"
+            },
+            "url": {"raw": "{{BASE_URL}}/api/ai/chat", "host": ["{{BASE_URL}}"], "path": ["api", "ai", "chat"]}
+          },
+          "response": []
+        },
+        {
+          "name": "AI Suggest Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester_id\": 1,\n  \"preferences\": {\n    \"max_hours\": 18,\n    \"difficulty_level\": \"MODERATE\"\n  }\n}"
+            },
+            "url": {"raw": "{{BASE_URL}}/api/ai/suggest-plan", "host": ["{{BASE_URL}}"], "path": ["api", "ai", "suggest-plan"]}
+          },
+          "response": []
+        },
+        {
+          "name": "AI Predict GPA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester_id\": 1,\n  \"planned_courses\": [{\n    \"course_id\": 1,\n    \"expected_grade\": \"A\"\n  }]\n}"
+            },
+            "url": {"raw": "{{BASE_URL}}/api/ai/predict-gpa", "host": ["{{BASE_URL}}"], "path": ["api", "ai", "predict-gpa"]}
+          },
+          "response": []
+        },
+        {
+          "name": "AI Risk Analysis",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/ai/risk-analysis/1", "host": ["{{BASE_URL}}"], "path": ["api", "ai", "risk-analysis", "1"]}
+          },
+          "response": []
+        },
+        {
+          "name": "AI History",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/ai/history", "host": ["{{BASE_URL}}"], "path": ["api", "ai", "history"]}
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "Get All Alerts",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/alerts", "host": ["{{BASE_URL}}"], "path": ["api", "alerts"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student Alerts",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/alerts/student/1", "host": ["{{BASE_URL}}"], "path": ["api", "alerts", "student", "1"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Check Student Alerts",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/alerts/check/1", "host": ["{{BASE_URL}}"], "path": ["api", "alerts", "check", "1"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve Alert",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/alerts/1/resolve", "host": ["{{BASE_URL}}"], "path": ["api", "alerts", "1", "resolve"]}
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Graduation",
+      "item": [
+        {
+          "name": "Get Graduation Overview",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/graduation/1", "host": ["{{BASE_URL}}"], "path": ["api", "graduation", "1"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get Graduation Requirements",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/graduation/1/requirements", "host": ["{{BASE_URL}}"], "path": ["api", "graduation", "1", "requirements"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get Graduation Audit",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/graduation/1/audit", "host": ["{{BASE_URL}}"], "path": ["api", "graduation", "1", "audit"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Create Graduation Requirement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requirement_name\": \"Core Courses\",\n  \"required_hours\": 60,\n  \"category\": \"CORE_COURSES\"\n}"
+            },
+            "url": {"raw": "{{BASE_URL}}/api/graduation/requirements", "host": ["{{BASE_URL}}"], "path": ["api", "graduation", "requirements"]}
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"rating\": 4,\n  \"difficulty\": 3,\n  \"workload\": 3,\n  \"would_recommend\": true,\n  \"comment\": \"مادة مفيدة جداً\"\n}"
+            },
+            "url": {"raw": "{{BASE_URL}}/api/reviews", "host": ["{{BASE_URL}}"], "path": ["api", "reviews"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Reviews",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/reviews/course/1", "host": ["{{BASE_URL}}"], "path": ["api", "reviews", "course", "1"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Reviews",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/reviews/my", "host": ["{{BASE_URL}}"], "path": ["api", "reviews", "my"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{STUDENT_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/reviews/1", "host": ["{{BASE_URL}}"], "path": ["api", "reviews", "1"]}
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Overview",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/analytics/1/overview", "host": ["{{BASE_URL}}"], "path": ["api", "analytics", "1", "overview"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get GPA Trend",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/analytics/1/gpa-trend", "host": ["{{BASE_URL}}"], "path": ["api", "analytics", "1", "gpa-trend"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get Grade Distribution",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/analytics/1/grade-distribution", "host": ["{{BASE_URL}}"], "path": ["api", "analytics", "1", "grade-distribution"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hours Progress",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{ADVISOR_TOKEN}}"}],
+            "url": {"raw": "{{BASE_URL}}/api/analytics/1/hours-progress", "host": ["{{BASE_URL}}"], "path": ["api", "analytics", "1", "hours-progress"]}
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "ADMIN_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ADVISOR_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "STUDENT_TOKEN",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

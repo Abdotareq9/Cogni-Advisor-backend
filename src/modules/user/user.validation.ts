@@ -9,7 +9,6 @@ export const createUserSchema = z.object({
     personal_email: z.string().email(),
     password: z.string().min(6),
     gender: z.string().optional(),
-    city_id: z.number().optional(),
     street_address: z.string().optional(),
     role: z.enum(["STUDENT", "ADVISOR", "ADMIN"])
   })
@@ -21,7 +20,6 @@ export const updateUserSchema = z.object({
     last_name: z.string().min(2).optional(),
     personal_email: z.string().email().optional(),
     gender: z.string().optional(),
-    city_id: z.number().optional(),
     street_address: z.string().optional()
   })
 });

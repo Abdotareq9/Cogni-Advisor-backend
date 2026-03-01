@@ -14,6 +14,7 @@ router.patch("/me", authenticate, authorize("STUDENT"), validate(updateMyProfile
 router.get("/:id", authenticate, authorize("ADMIN"), validate(studentIdSchema), asyncHandler(controller.getStudentHandler));
 router.put("/:id", authenticate, authorize("ADMIN"), validate(studentIdSchema), asyncHandler(controller.updateStudentHandler));
 router.patch("/:id/deactivate", authenticate, authorize("ADMIN"), validate(studentIdSchema), asyncHandler(controller.deactivateStudentHandler));
+router.patch("/:id/activate", authenticate, authorize("ADMIN"), validate(studentIdSchema), asyncHandler(controller.activateStudentHandler));
 
 
 

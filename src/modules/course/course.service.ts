@@ -69,6 +69,15 @@ export const deleteCourse = async (id: number) => {
     throw new AppError("Course not found", 404);
   }
 
+  await prisma.coursePrerequisite.deleteMany({
+    where: {
+      OR: [
+        { course_id: id },
+        { prereq_course_id: id }
+      ]
+    }
+  });
+
   return prisma.course.delete({
     where: { course_id: id },
   });
@@ -131,6 +140,31 @@ export const getCourseWithPrerequisites = async (
         include: {
           prereq: true,
         },
+      },
+    },
+  });
+};
+
+export const removePrerequisite = async (
+  courseId: number,
+  prerequisiteId: number
+) => {
+  const existing = await prisma.coursePrerequisite.findFirst({
+    where: {
+      course_id: courseId,
+      prereq_course_id: prerequisiteId,
+    },
+  });
+
+  if (!existing) {
+    throw new AppError("Prerequisite relationship not found", 404);
+  }
+
+  return prisma.coursePrerequisite.delete({
+    where: {
+      course_id_prereq_course_id: {
+        course_id: courseId,
+        prereq_course_id: prerequisiteId,
       },
     },
   });

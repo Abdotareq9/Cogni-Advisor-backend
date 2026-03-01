@@ -25,3 +25,10 @@ export const addPrerequisiteSchema = z.object({
     prerequisiteId: z.number()
   })
 });
+
+export const removePrerequisiteSchema = z.object({
+  body: z.object({
+    courseId: z.number(),
+    prerequisiteId: z.number()
+  })
+});

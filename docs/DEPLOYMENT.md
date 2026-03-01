@@ -208,7 +208,7 @@ URL: http://localhost:5000/api-docs
 
 ### API Test Collection
 ```
-File: test/api-test-collection.json
+File: postman/collection.json
 ```
 - Import into Postman/Insomnia
 - 64 endpoints with 202 test scenarios
@@ -425,7 +425,7 @@ services:
 - `README.md` - Project overview
 - `SYSTEM_AUDIT_REPORT.md` - Comprehensive system audit
 - `DEPLOYMENT_READY.md` - This file
-- `test/api-test-collection.json` - API testing guide
+- `docs/API/POSTMAN.md` - API testing guide
 
 ### API Documentation:
 - Swagger UI: `/api-docs`
