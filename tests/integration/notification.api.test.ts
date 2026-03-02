@@ -7,7 +7,7 @@ const prismaMock = {
   user: { findUnique: vi.fn() },
   notification: {
     findMany: vi.fn(),
-    findFirst: vi.fn(),
+    findUnique: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn()
@@ -73,7 +73,7 @@ describe("Notifications API", () => {
 
     it("returns 200 when notification exists for user", async () => {
       prismaMock.user.findUnique.mockResolvedValue({ user_id: 2, role: "STUDENT" });
-      prismaMock.notification.findFirst.mockResolvedValue({
+      prismaMock.notification.findUnique.mockResolvedValue({
         notification_id: 1,
         recipient_id: 2
       });

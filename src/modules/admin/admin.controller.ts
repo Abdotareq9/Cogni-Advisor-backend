@@ -12,7 +12,14 @@ export const getSystemSettingsHandler = async (_req: any, res: Response) => {
 };
 
 export const patchSystemSettingsHandler = async (req: any, res: Response) => {
-  const result = await adminService.patchSystemSettings(req.user.id, req.body ?? {});
+  let patch: Record<string, unknown> = req.body ?? {};
+  if (patch.key && patch.value && typeof patch.key === "string" && typeof patch.value === "object") {
+    const k = patch.key as string;
+    if (["general", "aiEngine", "permissions", "security"].includes(k)) {
+      patch = { [k]: patch.value };
+    }
+  }
+  const result = await adminService.patchSystemSettings(req.user.id, patch as any);
   res.json(result);
 };
 

@@ -36,15 +36,26 @@ const securitySchema = z.object({
   sessionTimeoutMinutes: z.number().int().min(1).max(1440).optional()
 });
 
+const VALID_SETTINGS_KEYS = ["general", "aiEngine", "permissions", "security"] as const;
+
 export const patchSystemSettingsSchema = z.object({
   body: z
     .object({
       general: generalSchema.optional(),
       aiEngine: aiEngineSchema.optional(),
       permissions: permissionsSchema.optional(),
-      security: securitySchema.optional()
+      security: securitySchema.optional(),
+      key: z.enum(VALID_SETTINGS_KEYS).optional(),
+      value: z.record(z.string(), z.unknown()).optional()
     })
-    .strict()
+    .refine(
+      (obj) => {
+        if (obj.key != null && obj.value != null) return true;
+        if (obj.general ?? obj.aiEngine ?? obj.permissions ?? obj.security) return true;
+        return false;
+      },
+      { message: "ارسل general أو aiEngine أو permissions أو security، أو key مع value" }
+    )
 });
 
 

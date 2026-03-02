@@ -19,7 +19,7 @@ router.post(
 router.patch(
   "/mark-passed",
   authenticate,
-  authorize("ADMIN"),
+  authorize("ADMIN", "ADVISOR"),
   validate(markPassedSchema),
   asyncHandler(controller.markPassedHandler)
 );

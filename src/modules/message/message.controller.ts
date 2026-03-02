@@ -17,11 +17,34 @@ export const getMessagesWithStudentHandler = async (req: any, res: Response) => 
 
 export const sendMessageToStudentHandler = async (req: any, res: Response) => {
   const studentUserId = Number(req.params.studentId);
-  const { body } = req.body;
+  const body =
+    (req.body?.body ??
+      req.body?.message ??
+      req.body?.content ??
+      req.body?.text ??
+      "") as string;
   const message = await messageService.sendMessageToStudent(
     req.user.id,
     studentUserId,
     body
   );
+  res.status(201).json(message);
+};
+
+/** Student: get my messages with my advisor */
+export const getMessagesWithAdvisorHandler = async (req: any, res: Response) => {
+  const messages = await messageService.getMessagesWithAdvisor(req.user.id);
+  res.json(messages);
+};
+
+/** Student: send message to my advisor */
+export const sendMessageToAdvisorHandler = async (req: any, res: Response) => {
+  const body =
+    (req.body?.body ??
+      req.body?.message ??
+      req.body?.content ??
+      req.body?.text ??
+      "") as string;
+  const message = await messageService.sendMessageToAdvisor(req.user.id, body);
   res.status(201).json(message);
 };

@@ -42,9 +42,23 @@ export const getCourseById = async (id: number) => {
   return course;
 };
 
+const UPDATE_COURSE_FIELDS = [
+  "course_code",
+  "course_name",
+  "credits",
+  "required_hours_to_take",
+  "is_available"
+] as const;
+
 export const updateCourse = async (
   id: number,
-  data: any
+  data: {
+    course_code?: string;
+    course_name?: string;
+    credits?: number;
+    required_hours_to_take?: number | null;
+    is_available?: boolean;
+  }
 ) => {
   const course = await prisma.course.findUnique({
     where: { course_id: id },
@@ -54,9 +68,16 @@ export const updateCourse = async (
     throw new AppError("Course not found", 404);
   }
 
+  const safeData: Record<string, unknown> = {};
+  for (const key of UPDATE_COURSE_FIELDS) {
+    if (data[key as keyof typeof data] !== undefined) {
+      safeData[key] = data[key as keyof typeof data];
+    }
+  }
+
   return prisma.course.update({
     where: { course_id: id },
-    data,
+    data: safeData,
   });
 };
 

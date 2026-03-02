@@ -475,31 +475,6 @@ export const swaggerSpec = {
         responses: { "200": { description: "Grade recorded and GPA updated" }, "404": { description: "Enrollment not found" } }
       }
     },
-    "/api/grades/assign": {
-      post: {
-        summary: "Assign grade",
-        description: "Assign a grade to a student for a course (ADMIN only)",
-        tags: ["Grades"],
-        security: [{ bearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                required: ["student_id", "course_id", "grade"],
-                properties: {
-                  student_id: { type: "integer" },
-                  course_id: { type: "integer" },
-                  grade: { type: "string", enum: ["A", "B", "C", "D", "F"] }
-                }
-              }
-            }
-          }
-        },
-        responses: { "200": { description: "Grade assigned" } }
-      }
-    },
     "/api/progress/{studentId}": {
       get: {
         summary: "Get student progress",

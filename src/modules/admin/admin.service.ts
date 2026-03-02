@@ -4,17 +4,10 @@ import { SystemSettingCategory } from "@prisma/client";
 import { AppError } from "../../utils/AppError.js";
 
 export const getOverview = async () => {
-  const [totalUsers, activeCourses, departments, auditLogs, database] = await Promise.all([
+  const [totalUsers, activeCourses, totalStudents, auditLogs, database] = await Promise.all([
     prisma.user.count(),
     prisma.course.count({ where: { is_available: true } }),
-    prisma.department.findMany({
-      select: {
-        dept_id: true,
-        dept_name: true,
-        _count: { select: { students: true } }
-      },
-      orderBy: { dept_name: "asc" }
-    }),
+    prisma.student.count(),
     prisma.auditLog.findMany({
       take: 10,
       orderBy: { created_at: "desc" },
@@ -27,15 +20,10 @@ export const getOverview = async () => {
 
   const mem = process.memoryUsage();
 
-  const studentsPerDepartment = departments.map((d) => ({
-    dept_id: d.dept_id,
-    dept_name: d.dept_name,
-    students: d._count.students
-  }));
-
   return {
     totalUsers,
     activeCourses,
+    totalStudents,
     serverStatus: {
       api: "online",
       database
@@ -49,8 +37,7 @@ export const getOverview = async () => {
       },
       uptimeSec: Math.floor(process.uptime())
     },
-    studentsPerDepartment,
-    recentActivity: auditLogs.map((a) => ({
+    recentActivity: auditLogs.map((a: { audit_id: number; action: string; entity_type: string | null; entity_id: string | null; created_at: Date; actor: { user_id: number; first_name: string; last_name: string; role: string } | null; metadata: unknown }) => ({
       audit_id: a.audit_id,
       action: a.action,
       entity_type: a.entity_type ?? null,

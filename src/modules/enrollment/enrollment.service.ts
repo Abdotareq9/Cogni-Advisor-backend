@@ -28,8 +28,9 @@ const checkPrerequisites = async (
   // check if student passed all prerequisites
   for (const prereq of prerequisites) {
     if (!passedCourseIds.includes(prereq.prereq_course_id)) {
-      throw new Error(
-        `Prerequisite not satisfied. Missing course ID: ${prereq.prereq_course_id}`
+      throw new AppError(
+        `لم تستكمل المتطلبات السابقة. المطلوب: ${prereq.prereq_course_id}`,
+        400
       );
     }
   }
@@ -41,7 +42,18 @@ export const enrollStudent = async (
   studentId: number,
   courseId: number
 ) => {
-  // 🔥 prerequisite check
+  const course = await prisma.course.findUnique({
+    where: { course_id: courseId },
+  });
+
+  if (!course) {
+    throw new AppError("المادة غير موجودة", 404);
+  }
+
+  if (!course.is_available) {
+    throw new AppError("المادة غير متاحة للتسجيل حالياً", 400);
+  }
+
   await checkPrerequisites(studentId, courseId);
 
   // check already enrolled
@@ -53,7 +65,7 @@ export const enrollStudent = async (
   });
 
   if (existing) {
-    throw new Error("Student already enrolled in this course");
+    throw new AppError("مسجّل بالفعل في هذه المادة", 400);
   }
 
   return await prisma.enrollment.create({
@@ -69,8 +81,23 @@ export const markCoursePassed = async (
   courseId: number,
   grade: string
 ) => {
+  const course = await prisma.course.findUnique({
+    where: { course_id: courseId }
+  });
 
-  const enrollment = await prisma.enrollment.findFirst({
+  if (!course) {
+    throw new AppError("المادة غير موجودة", 404);
+  }
+
+  const student = await prisma.student.findUnique({
+    where: { student_id: studentId }
+  });
+
+  if (!student) {
+    throw new AppError("الطالب غير موجود", 404);
+  }
+
+  let enrollment = await prisma.enrollment.findFirst({
     where: {
       student_id: studentId,
       course_id: courseId
@@ -78,29 +105,43 @@ export const markCoursePassed = async (
     include: { course: true }
   });
 
-  if (!enrollment)
-    throw new AppError("Enrollment not found", 404);
+  const wasAlreadyPassed = enrollment?.status === "PASSED";
+  const gradeEarnsCredits = grade !== "F";
+  const creditsToAdd =
+    !wasAlreadyPassed && gradeEarnsCredits
+      ? (enrollment?.course?.credits ?? course.credits)
+      : 0;
 
-  // Update enrollment
-  await prisma.enrollment.update({
-    where: { enrollment_id: enrollment.enrollment_id },
-    data: {
-      status: "PASSED",
-      grade: grade
-    }
-  });
-
-  // Update earned hours
-  await prisma.student.update({
-    where: { student_id: studentId },
-    data: {
-      total_earned_hours: {
-        increment: enrollment.course.credits
+  if (!enrollment) {
+    enrollment = await prisma.enrollment.create({
+      data: {
+        student_id: studentId,
+        course_id: courseId,
+        status: "PASSED",
+        grade: grade
+      },
+      include: { course: true }
+    });
+  } else {
+    await prisma.enrollment.update({
+      where: { enrollment_id: enrollment.enrollment_id },
+      data: {
+        status: "PASSED",
+        grade: grade
       }
-    }
-  });
+    });
+  }
 
-  // Recalculate GPA using shared utility
+  // Update earned hours when newly passed with grade A-D (F = no credits)
+  if (creditsToAdd > 0) {
+    await prisma.student.update({
+      where: { student_id: studentId },
+      data: {
+        total_earned_hours: { increment: creditsToAdd }
+      }
+    });
+  }
+
   await recalculateStudentGPA(studentId);
 
   return { message: "Course marked as PASSED" };

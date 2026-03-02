@@ -15,8 +15,8 @@ const prismaMock: any = {
   course: {
     count: vi.fn()
   },
-  department: {
-    findMany: vi.fn()
+  student: {
+    count: vi.fn()
   },
   systemSetting: {
     upsert: vi.fn(),
@@ -59,9 +59,7 @@ describe("Admin API", () => {
       prismaMock.user.findUnique.mockResolvedValue({ user_id: 1, role: "ADMIN" });
       prismaMock.user.count.mockResolvedValue(5);
       prismaMock.course.count.mockResolvedValue(2);
-      prismaMock.department.findMany.mockResolvedValue([
-        { dept_id: 1, dept_name: "CS", _count: { students: 10 } }
-      ]);
+      prismaMock.student.count.mockResolvedValue(10);
       prismaMock.auditLog.findMany.mockResolvedValue([]);
       prismaMock.$queryRaw.mockResolvedValue([{ "?column?": 1 }]);
 
@@ -73,7 +71,7 @@ describe("Admin API", () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty("totalUsers", 5);
       expect(res.body).toHaveProperty("activeCourses", 2);
-      expect(Array.isArray(res.body.studentsPerDepartment)).toBe(true);
+      expect(res.body).toHaveProperty("totalStudents", 10);
       expect(res.body.serverStatus).toMatchObject({ api: "online" });
     });
   });

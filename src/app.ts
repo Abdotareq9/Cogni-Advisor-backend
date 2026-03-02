@@ -41,7 +41,6 @@ app.use(cors({
   allowedHeaders: ["Authorization", "Content-Type", "X-Request-Id"]
 }));
 app.use("/api", apiLimiter);
-app.use(globalErrorHandler);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -66,6 +65,8 @@ app.get("/api/health", asyncHandler(async (_req: Request, res: Response) => {
     });
   }
 }));
+
+app.use(globalErrorHandler);
 
 export default app;
 

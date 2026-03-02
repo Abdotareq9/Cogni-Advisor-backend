@@ -13,9 +13,10 @@ export const getStudentHandler = async (req: Request, res: Response) => {
 
 export const updateStudentHandler = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
+    const body = req.body as Parameters<typeof studentService.updateStudent>[1];
 
     const updated =
-      await studentService.updateStudent(id, req.body);
+      await studentService.updateStudent(id, body);
 
     res.json(updated);
 };

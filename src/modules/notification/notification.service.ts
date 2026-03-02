@@ -9,10 +9,22 @@ export const getByRecipientId = async (recipientId: number) => {
 };
 
 export const markAsRead = async (notificationId: number, recipientId: number) => {
-  const n = await prisma.notification.findFirst({
-    where: { notification_id: notificationId, recipient_id: recipientId }
+  if (!Number.isInteger(notificationId) || notificationId < 1) {
+    throw new AppError("معرف الإشعار غير صالح", 400);
+  }
+
+  const n = await prisma.notification.findUnique({
+    where: { notification_id: notificationId }
   });
-  if (!n) throw new AppError("Notification not found", 404);
+
+  if (!n) {
+    throw new AppError("الإشعار غير موجود", 404);
+  }
+
+  if (n.recipient_id !== recipientId) {
+    throw new AppError("هذا الإشعار لا يخص حسابك", 403);
+  }
+
   return prisma.notification.update({
     where: { notification_id: notificationId },
     data: { is_read: true }

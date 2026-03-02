@@ -30,9 +30,17 @@ export const updateCourseHandler = async (
   res: Response
 ) => {
     const id = Number(req.params.id);
+    const body = req.body as Record<string, unknown>;
+    // Map common aliases to schema fields (name -> course_name)
+    const data = {
+      ...body,
+      course_name: body.course_name ?? body.name
+    };
+    delete (data as Record<string, unknown>).name;
+    delete (data as Record<string, unknown>).description;
 
     const updated =
-      await courseService.updateCourse(id, req.body);
+      await courseService.updateCourse(id, data as Parameters<typeof courseService.updateCourse>[1]);
 
     res.json(updated);
 };

@@ -107,3 +107,66 @@ export const sendMessageToStudent = async (
     sent_at: message.sent_at
   };
 };
+
+/** Get messages between a student and their advisor (student view). */
+export const getMessagesWithAdvisor = async (studentUserId: number) => {
+  const student = await prisma.student.findUnique({
+    where: { student_id: studentUserId },
+    select: { advisor_id: true }
+  });
+  if (!student || !student.advisor_id)
+    throw new AppError("لا يوجد مرشد مُعيّن لك. تواصل مع الإدارة", 404);
+
+  const advisorUserId = student.advisor_id; // advisor_id في Advisor = user_id
+
+  const messages = await prisma.message.findMany({
+    where: {
+      OR: [
+        { sender_id: studentUserId, recipient_id: advisorUserId },
+        { sender_id: advisorUserId, recipient_id: studentUserId }
+      ]
+    },
+    orderBy: { sent_at: "asc" },
+    include: {
+      sender: { select: { user_id: true, first_name: true, last_name: true } }
+    }
+  });
+
+  return messages.map((m) => ({
+    message_id: m.message_id,
+    body: m.body,
+    sent_at: m.sent_at,
+    is_read: m.is_read,
+    from_me: m.sender_id === studentUserId,
+    sender_name: `${m.sender.first_name} ${m.sender.last_name}`
+  }));
+};
+
+/** Send message from student to their advisor. */
+export const sendMessageToAdvisor = async (
+  studentUserId: number,
+  body: string
+) => {
+  const student = await prisma.student.findUnique({
+    where: { student_id: studentUserId },
+    select: { advisor_id: true }
+  });
+  if (!student || !student.advisor_id)
+    throw new AppError("لا يوجد مرشد مُعيّن لك. تواصل مع الإدارة", 404);
+
+  const advisorUserId = student.advisor_id;
+
+  const message = await prisma.message.create({
+    data: {
+      sender_id: studentUserId,
+      recipient_id: advisorUserId,
+      body: body.trim()
+    }
+  });
+
+  return {
+    message_id: message.message_id,
+    body: message.body,
+    sent_at: message.sent_at
+  };
+};

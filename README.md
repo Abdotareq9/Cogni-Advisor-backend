@@ -111,9 +111,11 @@ npm run test:coverage
 
 ## 📖 System Documentation
 
-**دليل النظام الشامل (عربي):** [`docs/SYSTEM-GUIDE.md`](docs/SYSTEM-GUIDE.md) - يحتوي على شرح كامل للنظام، الوحدات، تدفق العمل، والتثبيت.
+**نظرة عامة على المشروع:** [`docs/PROJECT-OVERVIEW.md`](docs/PROJECT-OVERVIEW.md) - شرح شامل للنظام، الوحدات، تدفق العمل، والتثبيت.
 
-**فهرس التوثيق:** [`docs/README.md`](docs/README.md) - دليل جميع الوثائق المتاحة.
+**دليل ربط Frontend:** [`docs/API-INTEGRATION-GUIDE.md`](docs/API-INTEGRATION-GUIDE.md) - وثيقة تسليم لفريق الواجهة الأمامية لربط الـ API.
+
+**فهرس التوثيق:** [`docs/README.md`](docs/README.md) - دليل جميع الوثائق المتاحة (إن وُجد).
 
 ## 📊 Project Structure
 
@@ -138,17 +140,14 @@ src/
 │   ├── course/      # Course catalog management
 │   ├── semester/    # Semester & academic year
 │   ├── enrollment/  # Student enrollments & grades
-│   ├── grade/       # Grade assignment
 │   ├── studyPlan/   # Study plan workflow
 │   ├── progress/    # Academic progress tracking
 │   ├── notification/# Notification system
 │   ├── feedback/    # Advisor feedback
 │   ├── semesterRecord/ # Semester records
-│   ├── ai/          # AI integration (infrastructure)
-│   ├── alert/       # Early warning system
-│   ├── graduation/  # Graduation tracker
-│   ├── review/      # Course reviews
-│   └── analytics/   # Performance analytics
+│   ├── message/     # Advisor-student messaging
+│   ├── recommendations/ # Course recommendations
+│   └── ai/          # AI integration (infrastructure)
 ├── utils/           # Utility functions & helpers
 │   ├── AppError.ts       # Custom error class
 │   ├── asyncHandler.ts   # Async route wrapper
@@ -175,6 +174,7 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 
 ### 🔐 Authentication
 - `POST /api/auth/login` - User login with credentials
+- `GET /api/auth/me` - Current user info (id, role)
 - `PATCH /api/auth/change-password` - Change user password
 
 ### 👥 Users (Admin Only)
@@ -203,7 +203,6 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 - `PATCH /api/courses/:id/toggle` - Toggle availability (Admin)
 - `POST /api/courses/add-prerequisite` - Add prerequisite (Admin)
 - `DELETE /api/courses/remove-prerequisite` - Remove prerequisite (Admin)
-- `GET /api/courses/:id/stats` - Get course statistics
 
 ### 📅 Semesters
 - `GET /api/semesters` - List all semesters
@@ -215,9 +214,6 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 ### 📝 Enrollments
 - `POST /api/enrollments` - Enroll in course (Student)
 - `PATCH /api/enrollments/mark-passed` - Mark course as passed (Admin)
-
-### 🎓 Grades
-- `POST /api/grades/assign` - Assign grade (Admin)
 
 ### 📊 Academic Progress
 - `GET /api/progress/:studentId` - Get student progress with GPA distribution
@@ -269,30 +265,6 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 - `POST /api/ai/predict-gpa` - Predict GPA (Student)
 - `GET /api/ai/risk-analysis/:studentId` - Risk analysis (Admin/Advisor)
 - `GET /api/ai/history` - Interaction history (Student)
-
-### ⚠️ Alerts (Early Warning System)
-- `GET /api/alerts` - All alerts (Admin/Advisor)
-- `GET /api/alerts/student/:studentId` - Student alerts
-- `POST /api/alerts/check/:studentId` - Check and create alerts
-- `PATCH /api/alerts/:id/resolve` - Resolve alert
-
-### 🎓 Graduation Tracker
-- `GET /api/graduation/:studentId` - Graduation overview
-- `GET /api/graduation/:studentId/requirements` - Detailed requirements
-- `GET /api/graduation/:studentId/audit` - Degree audit
-- `POST /api/graduation/requirements` - Create requirement (Admin)
-
-### ⭐ Course Reviews
-- `POST /api/reviews` - Create/update review (Student)
-- `GET /api/reviews/course/:courseId` - Course reviews
-- `GET /api/reviews/my` - My reviews (Student)
-- `DELETE /api/reviews/:id` - Delete review (Student)
-
-### 📈 Performance Analytics
-- `GET /api/analytics/:studentId/overview` - Overview
-- `GET /api/analytics/:studentId/gpa-trend` - GPA trend
-- `GET /api/analytics/:studentId/grade-distribution` - Grade distribution
-- `GET /api/analytics/:studentId/hours-progress` - Hours progress
 
 **📚 Full API Documentation:** Visit `/api-docs` for interactive Swagger UI
 
@@ -357,8 +329,8 @@ docker-compose -f docker-compose.yml up -d
 A comprehensive test collection is available at `postman/collection.json`:
 
 ### Test Coverage
-- **64 endpoints** across all modules
-- **202 test scenarios** covering:
+- Endpoints across all modules (Auth, Users, Students, Courses, Semesters, Enrollments, Progress, Study Plans, Advisor, Notifications, Feedback, Admin, AI)
+- Test scenarios covering:
   - ✅ Success cases
   - ✅ Authentication/authorization failures
   - ✅ Validation errors

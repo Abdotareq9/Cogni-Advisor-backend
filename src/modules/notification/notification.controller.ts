@@ -4,7 +4,9 @@ import * as notificationService from "./notification.service.js";
 export const getMyNotificationsHandler = async (req: Request, res: Response) => {
   const recipientId = (req as any).user.id;
   const list = await notificationService.getByRecipientId(recipientId);
-  res.json(list);
+  // إضافة id كمرادف لـ notification_id لتوافق الفرونت إند
+  const withId = list.map((n) => ({ ...n, id: n.notification_id }));
+  res.json(withId);
 };
 
 export const markAsReadHandler = async (req: Request, res: Response) => {
@@ -21,6 +23,13 @@ export const markAllAsReadHandler = async (req: Request, res: Response) => {
 };
 
 export const createNotificationHandler = async (req: Request, res: Response) => {
-  const notification = await notificationService.createNotification(req.body);
+  const rawRecipientId = req.body.recipient_id;
+  const effectiveRecipientId =
+    rawRecipientId === 0 ? (req as any).user.id : rawRecipientId;
+
+  const notification = await notificationService.createNotification({
+    ...req.body,
+    recipient_id: effectiveRecipientId
+  });
   res.status(201).json(notification);
 };

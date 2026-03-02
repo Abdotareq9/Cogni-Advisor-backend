@@ -5,7 +5,8 @@ import { authenticate } from "../../middlewares/auth.middleware.js";
 
 import {
   loginHandler,
-  changePasswordHandler
+  changePasswordHandler,
+  meHandler
 } from "./auth.controller.js";
 
 import {
@@ -20,6 +21,8 @@ router.post(
   validate(loginSchema),
   asyncHandler(loginHandler)
 );
+
+router.get("/me", authenticate, asyncHandler(meHandler));
 
 router.patch(
   "/change-password",

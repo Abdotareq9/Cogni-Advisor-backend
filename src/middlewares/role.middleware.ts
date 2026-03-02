@@ -12,8 +12,14 @@ export const authorize =
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "Forbidden: Access denied" });
+    const userRole = String(req.user.role ?? "").toUpperCase();
+    const allowedRoles = roles.map((r) => String(r).toUpperCase());
+
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        message: "Forbidden: Access denied",
+        yourRole: req.user.role ?? "unknown"
+      });
     }
 
     next();

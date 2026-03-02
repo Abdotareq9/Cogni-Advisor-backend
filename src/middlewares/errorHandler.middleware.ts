@@ -17,7 +17,25 @@ export const globalErrorHandler = (
     });
   }
 
-  // Prisma errors
+  // Prisma foreign key violation (P2003)
+  if (err.code === "P2003") {
+    return res.status(400).json({
+      success: false,
+      message: "المرجع غير موجود (طالب أو مادة أو فصل)"
+    });
+  }
+
+  // Prisma unique constraint (P2002)
+  if (err.code === "P2002") {
+    const target = (err.meta?.target as string[])?.join(", ");
+    const field = target || "الحقل";
+    return res.status(409).json({
+      success: false,
+      message: `القيمة مكررة بالفعل للحقل: ${field}`
+    });
+  }
+
+  // Other Prisma errors
   if (err.code) {
     return res.status(400).json({
       success: false,

@@ -1,29 +1,13 @@
 # فهرس التوثيق - Cogni-Advisor
 
-## الوثائق الرئيسية
+## الوثائق المتاحة
 
 | الوثيقة | الوصف |
 |---------|--------|
-| [SYSTEM-GUIDE.md](SYSTEM-GUIDE.md) | دليل النظام الشامل - بنية المشروع، الوحدات، التثبيت |
-| [CHANGELOG.md](CHANGELOG.md) | سجل التغييرات والإصدارات |
+| [PROJECT-OVERVIEW.md](PROJECT-OVERVIEW.md) | نظرة عامة شاملة على المشروع - الأهداف، التقنيات، الوحدات، تدفق العمل، التثبيت |
+| [API-INTEGRATION-GUIDE.md](API-INTEGRATION-GUIDE.md) | دليل ربط Frontend مع API — قاعدة URL، المصادقة، Endpoints حسب الدور، أمثلة Request/Response |
 
-## API والتطوير
+## التوثيق الخارجي
 
-| الوثيقة | الوصف |
-|---------|--------|
-| [API/NEW-MODULES.md](API/NEW-MODULES.md) | دليل الـ modules الجديدة (AI, Alerts, Graduation, Reviews, Analytics) |
-| [API/POSTMAN.md](API/POSTMAN.md) | دليل استخدام Postman Collection |
-
-## العمليات والنشر
-
-| الوثيقة | الوصف |
-|---------|--------|
-| [DEPLOYMENT.md](DEPLOYMENT.md) | دليل النشر والإنتاج |
-| [TESTING.md](TESTING.md) | دليل الاختبارات |
-
-## أرشيف
-
-| الوثيقة | الوصف |
-|---------|--------|
-| [archive/FILES-SUMMARY.md](archive/FILES-SUMMARY.md) | ملخص الملفات (أرشيف) |
-| [archive/IMPLEMENTATION-SUMMARY.md](archive/IMPLEMENTATION-SUMMARY.md) | ملخص التنفيذ (أرشيف) |
+- **Swagger UI**: `http://localhost:5000/api-docs` — توثيق تفاعلي للـ API
+- **Postman**: `postman/collection.json` — مجموعة طلبات جاهزة للاستيراد

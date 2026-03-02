@@ -20,7 +20,6 @@ const allowAdvisorOrStudentOwner = (req: Request, res: Response, next: () => voi
 router.post(
   "/",
   authenticate,
-  authorize("ADVISOR"),
   validate(createFeedbackSchema),
   asyncHandler(controller.createFeedbackHandler)
 );

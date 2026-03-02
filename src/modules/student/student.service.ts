@@ -16,9 +16,25 @@ export const getStudentById = async (id: number) => {
   return student;
 };
 
+const UPDATE_STUDENT_FIELDS = [
+  "advisor_id",
+  "major_type",
+  "level",
+  "cumulative_gpa",
+  "total_earned_hours",
+  "status"
+] as const;
+
 export const updateStudent = async (
   id: number,
-  data: any
+  data: {
+    advisor_id?: number | null;
+    major_type?: string | null;
+    level?: number;
+    cumulative_gpa?: number;
+    total_earned_hours?: number;
+    status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+  }
 ) => {
   const student = await prisma.student.findUnique({
     where: { student_id: id }
@@ -27,9 +43,28 @@ export const updateStudent = async (
   if (!student)
     throw new AppError("Student not found", 404);
 
+  if (data.advisor_id != null) {
+    const advisor = await prisma.advisor.findUnique({
+      where: { advisor_id: data.advisor_id }
+    });
+    if (!advisor)
+      throw new AppError("Advisor not found", 404);
+  }
+
+  const safeData: Record<string, unknown> = {};
+  for (const key of UPDATE_STUDENT_FIELDS) {
+    if (data[key] !== undefined) {
+      if (key === "cumulative_gpa" && typeof data[key] === "number") {
+        safeData[key] = data[key];
+      } else {
+        safeData[key] = data[key];
+      }
+    }
+  }
+
   return prisma.student.update({
     where: { student_id: id },
-    data
+    data: safeData
   });
 };
 
