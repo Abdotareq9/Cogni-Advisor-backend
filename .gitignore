@@ -59,6 +59,7 @@ prisma/*.db-journal
 .cache/
 temp/
 tmp/
+nul
 
 # Docker
 docker-compose.override.yml
