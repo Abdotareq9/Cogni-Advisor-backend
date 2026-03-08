@@ -29,7 +29,7 @@ const checkPrerequisites = async (
   for (const prereq of prerequisites) {
     if (!passedCourseIds.includes(prereq.prereq_course_id)) {
       throw new AppError(
-        `لم تستكمل المتطلبات السابقة. المطلوب: ${prereq.prereq_course_id}`,
+        `Prerequisites not completed. Required: ${prereq.prereq_course_id}`,
         400
       );
     }
@@ -47,11 +47,11 @@ export const enrollStudent = async (
   });
 
   if (!course) {
-    throw new AppError("المادة غير موجودة", 404);
+    throw new AppError("Course not found", 404);
   }
 
   if (!course.is_available) {
-    throw new AppError("المادة غير متاحة للتسجيل حالياً", 400);
+    throw new AppError("Course not available for enrollment", 400);
   }
 
   await checkPrerequisites(studentId, courseId);
@@ -65,7 +65,7 @@ export const enrollStudent = async (
   });
 
   if (existing) {
-    throw new AppError("مسجّل بالفعل في هذه المادة", 400);
+    throw new AppError("Already enrolled in this course", 400);
   }
 
   return await prisma.enrollment.create({
@@ -86,7 +86,7 @@ export const markCoursePassed = async (
   });
 
   if (!course) {
-    throw new AppError("المادة غير موجودة", 404);
+    throw new AppError("Course not found", 404);
   }
 
   const student = await prisma.student.findUnique({
@@ -94,7 +94,7 @@ export const markCoursePassed = async (
   });
 
   if (!student) {
-    throw new AppError("الطالب غير موجود", 404);
+    throw new AppError("Student not found", 404);
   }
 
   let enrollment = await prisma.enrollment.findFirst({

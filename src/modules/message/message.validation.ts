@@ -24,7 +24,7 @@ export const sendMessageSchema = z.object({
       },
       {
         message:
-          "يجب إرسال نص الرسالة في أحد الحقول: body, message, content, text"
+          "Message text must be in one of: body, message, content, text"
       }
     )
 });
@@ -45,7 +45,7 @@ export const sendMessageBodySchema = z.object({
       },
       {
         message:
-          "يجب إرسال نص الرسالة في أحد الحقول: body, message, content, text"
+          "Message text must be in one of: body, message, content, text"
       }
     )
 });

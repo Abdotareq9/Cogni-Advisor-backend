@@ -54,7 +54,7 @@ export const patchSystemSettingsSchema = z.object({
         if (obj.general ?? obj.aiEngine ?? obj.permissions ?? obj.security) return true;
         return false;
       },
-      { message: "ارسل general أو aiEngine أو permissions أو security، أو key مع value" }
+      { message: "Send general, aiEngine, permissions, or security, or key with value" }
     )
 });
 

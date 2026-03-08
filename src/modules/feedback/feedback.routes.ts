@@ -9,7 +9,7 @@ import { createFeedbackSchema, studentIdParamSchema } from "./feedback.validatio
 
 const router = Router();
 
-/** ADVISOR أو الطالب نفسه فقط لجدولة /student/:studentId */
+/** ADVISOR or the student themselves only for /student/:studentId */
 const allowAdvisorOrStudentOwner = (req: Request, res: Response, next: () => void) => {
   const u = (req as any).user;
   if (u?.role === "ADVISOR") return next();

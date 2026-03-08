@@ -8,7 +8,7 @@ export const createChatInteraction = async (studentId: number, message: string) 
   });
 
   if (!student) {
-    throw new AppError("الطالب غير موجود", 404);
+    throw new AppError("Student not found", 404);
   }
 
   const interaction = await prisma.aIInteraction.create({
@@ -22,7 +22,7 @@ export const createChatInteraction = async (studentId: number, message: string) 
 
   return {
     interaction_id: interaction.interaction_id,
-    message: "تم إرسال استفسارك بنجاح. سيتم معالجته قريباً",
+    message: "Your inquiry has been submitted. It will be processed shortly",
     status: interaction.status
   };
 };
@@ -43,7 +43,7 @@ export const createPlanSuggestion = async (
   });
 
   if (!student) {
-    throw new AppError("الطالب غير موجود", 404);
+    throw new AppError("Student not found", 404);
   }
 
   const semester = await prisma.semester.findUnique({
@@ -51,7 +51,7 @@ export const createPlanSuggestion = async (
   });
 
   if (!semester) {
-    throw new AppError("الفصل الدراسي غير موجود", 404);
+    throw new AppError("Semester not found", 404);
   }
 
   const interaction = await prisma.aIInteraction.create({
@@ -74,7 +74,7 @@ export const createPlanSuggestion = async (
 
   return {
     interaction_id: interaction.interaction_id,
-    message: "جاري إنشاء خطة دراسية مقترحة. سيتم إشعارك عند الانتهاء",
+    message: "Creating suggested study plan. You will be notified when complete",
     status: interaction.status
   };
 };
@@ -89,7 +89,7 @@ export const createGpaPrediction = async (
   });
 
   if (!student) {
-    throw new AppError("الطالب غير موجود", 404);
+    throw new AppError("Student not found", 404);
   }
 
   const courses = await prisma.course.findMany({
@@ -99,7 +99,7 @@ export const createGpaPrediction = async (
   });
 
   if (courses.length !== plannedCourses.length) {
-    throw new AppError("بعض المواد غير موجودة", 404);
+    throw new AppError("Some courses not found", 404);
   }
 
   const interaction = await prisma.aIInteraction.create({
@@ -118,7 +118,7 @@ export const createGpaPrediction = async (
 
   return {
     interaction_id: interaction.interaction_id,
-    message: "جاري حساب التوقع. سيتم إشعارك بالنتيجة",
+    message: "Calculating prediction. You will be notified of the result",
     status: interaction.status
   };
 };
@@ -141,7 +141,7 @@ export const getRiskAnalysis = async (studentId: number) => {
   });
 
   if (!student) {
-    throw new AppError("الطالب غير موجود", 404);
+    throw new AppError("Student not found", 404);
   }
 
   const interaction = await prisma.aIInteraction.create({
@@ -165,7 +165,7 @@ export const getRiskAnalysis = async (studentId: number) => {
 
   return {
     interaction_id: interaction.interaction_id,
-    message: "جاري تحليل المخاطر الأكاديمية",
+    message: "Analyzing academic risk",
     status: interaction.status,
     preliminary_data: {
       cumulative_gpa: student.cumulative_gpa,

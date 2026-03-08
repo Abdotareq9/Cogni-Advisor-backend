@@ -181,7 +181,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\"\n}"
+              "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith\"\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/users/1",
@@ -266,7 +266,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"+201234567890\",\n  \"address\": \"123 Main Street, Cairo\"\n}"
+              "raw": "{\n  \"street_address\": \"123 Main Street, Cairo\",\n  \"phones\": [\"+201234567890\"]\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/students/me",
@@ -501,7 +501,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Advanced Programming\",\n  \"credits\": 4,\n  \"description\": \"Advanced programming concepts\"\n}"
+              "raw": "{\n  \"course_code\": \"CS101\",\n  \"course_name\": \"Advanced Programming\",\n  \"credits\": 4\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/courses/1",
@@ -1056,7 +1056,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"semesterId\": 1,\n  \"targetCredits\": 18\n}"
+              "raw": "{\n  \"semester_id\": 1\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/study-plan",
@@ -1106,7 +1106,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"courseId\": 1\n}"
+              "raw": "{\n  \"course_id\": 1\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/study-plan/1/add-course",
@@ -1150,7 +1150,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"APPROVED\",\n  \"advisorNotes\": \"Good plan, approved!\"\n}"
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"feedback\": \"Good plan, approved!\"\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/study-plan/1/review",
@@ -1385,7 +1385,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"content\": \"Let's discuss your study plan tomorrow.\"\n}"
+              "raw": "{\n  \"message\": \"Let's discuss your study plan tomorrow.\"\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/advisor/messages/conversations/1/messages",

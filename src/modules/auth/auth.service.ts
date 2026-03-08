@@ -3,17 +3,19 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { AppError } from "../../utils/AppError.js";
 
+const LOGIN_ERROR_MESSAGE = "Invalid credentials or account not found";
+
 export const login = async (
   identifier: string,
-  password: string
+  password: string,
+  requestedRole?: string
 ) => {
-
   const user = await prisma.user.findUnique({
     where: { national_id: identifier }
   });
 
   if (!user)
-    throw new AppError("Invalid credentials", 401);
+    throw new AppError(LOGIN_ERROR_MESSAGE, 401);
 
   const isMatch = await bcrypt.compare(
     password,
@@ -21,7 +23,10 @@ export const login = async (
   );
 
   if (!isMatch)
-    throw new AppError("Invalid credentials", 401);
+    throw new AppError(LOGIN_ERROR_MESSAGE, 401);
+
+  if (requestedRole && requestedRole !== user.role)
+    throw new AppError(LOGIN_ERROR_MESSAGE, 401);
 
   const secret = process.env.JWT_SECRET ?? "fallback-secret-change-in-production";
   const token = jwt.sign(

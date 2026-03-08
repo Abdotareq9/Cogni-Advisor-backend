@@ -2,11 +2,12 @@ import type { Response } from "express";
 import * as authService from "./auth.service.js";
 
 export const loginHandler = async (req: any, res: Response) => {
-  const { identifier, password } = req.body;
+  const { identifier, password, role: requestedRole } = req.body;
 
   const result = await authService.login(
     identifier,
-    password
+    password,
+    requestedRole
   );
 
   res.json(result);

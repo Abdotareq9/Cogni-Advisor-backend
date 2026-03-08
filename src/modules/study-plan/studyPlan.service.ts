@@ -3,7 +3,7 @@ import { AppError } from "../../utils/AppError.js";
 
 export const createStudyPlan = async (studentId: number, semesterId: number) => {
 
-  // 🔥 CHECK هنا
+  // TODO: Check here
   const existingPlan = await prisma.studyPlan.findUnique({
     where: {
       student_id_semester_id: {

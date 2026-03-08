@@ -2,13 +2,13 @@ import { z } from "zod";
 
 export const chatSchema = z.object({
   body: z.object({
-    message: z.string().min(1, "الرسالة مطلوبة").max(2000, "الرسالة طويلة جداً")
+    message: z.string().min(1, "Message is required").max(2000, "Message too long")
   })
 });
 
 export const suggestPlanSchema = z.object({
   body: z.object({
-    semester_id: z.number().int().positive("معرف الفصل يجب أن يكون رقم موجب"),
+    semester_id: z.number().int().positive("Semester id must be a positive number"),
     preferences: z.object({
       max_hours: z.number().int().min(12).max(21).optional(),
       difficulty_level: z.enum(["EASY", "MODERATE", "HARD"]).optional(),
@@ -19,18 +19,18 @@ export const suggestPlanSchema = z.object({
 
 export const predictGpaSchema = z.object({
   body: z.object({
-    semester_id: z.number().int().positive("معرف الفصل يجب أن يكون رقم موجب"),
+    semester_id: z.number().int().positive("Semester id must be a positive number"),
     planned_courses: z.array(
       z.object({
         course_id: z.number().int().positive(),
-        expected_grade: z.string().regex(/^[ABCDF][+-]?$/, "درجة غير صحيحة")
+        expected_grade: z.string().regex(/^[ABCDF][+-]?$/, "Invalid grade")
       })
-    ).min(1, "يجب إدخال مادة واحدة على الأقل")
+    ).min(1, "At least one course is required")
   })
 });
 
 export const riskAnalysisSchema = z.object({
   params: z.object({
-    studentId: z.string().regex(/^\d+$/, "معرف الطالب يجب أن يكون رقم موجب")
+    studentId: z.string().regex(/^\d+$/, "Student id must be a positive number")
   })
 });

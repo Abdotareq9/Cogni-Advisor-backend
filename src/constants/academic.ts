@@ -1,4 +1,4 @@
-/** إعدادات أكاديمية مشتركة */
+/** Shared academic settings */
 
 export const TOTAL_REQUIRED_HOURS = 144;
 

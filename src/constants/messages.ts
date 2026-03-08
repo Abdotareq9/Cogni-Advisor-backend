@@ -1,9 +1,9 @@
-/** رسائل أخطاء مشتركة */
+/** Common error messages */
 
 export const ERROR_MESSAGES = {
-  UNAUTHORIZED: "غير مصرح",
-  FORBIDDEN: "ممنوع الوصول",
-  NOT_FOUND: "العنصر غير موجود",
-  VALIDATION_ERROR: "خطأ في التحقق من البيانات",
-  INTERNAL_ERROR: "خطأ داخلي في الخادم",
+  UNAUTHORIZED: "Unauthorized",
+  FORBIDDEN: "Access forbidden",
+  NOT_FOUND: "Item not found",
+  VALIDATION_ERROR: "Validation error",
+  INTERNAL_ERROR: "Internal server error",
 } as const;

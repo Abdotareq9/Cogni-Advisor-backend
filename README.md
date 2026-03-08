@@ -111,11 +111,7 @@ npm run test:coverage
 
 ## 📖 System Documentation
 
-**نظرة عامة على المشروع:** [`docs/PROJECT-OVERVIEW.md`](docs/PROJECT-OVERVIEW.md) - شرح شامل للنظام، الوحدات، تدفق العمل، والتثبيت.
-
-**دليل ربط Frontend:** [`docs/API-INTEGRATION-GUIDE.md`](docs/API-INTEGRATION-GUIDE.md) - وثيقة تسليم لفريق الواجهة الأمامية لربط الـ API.
-
-**فهرس التوثيق:** [`docs/README.md`](docs/README.md) - دليل جميع الوثائق المتاحة (إن وُجد).
+**التوثيق الشامل (عربي):** [`docs/README.md`](docs/README.md) — ملف واحد يشرح المشروع بالكامل: الأهداف، التقنيات، الهيكل، المصادقة، الـ API حسب الأدوار، قاعدة البيانات، التثبيت والتشغيل، ودليل ربط الـ Frontend.
 
 ## 📊 Project Structure
 

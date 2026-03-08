@@ -42,7 +42,7 @@ export const getAcademicProgress = async (studentId: number) => {
     }
   }
 
-  // 👇 عدل الرقم حسب نظام كليتك
+  // Adjust the number according to your college system
   const TOTAL_REQUIRED_CREDITS = 132;
 
   const remainingCredits = TOTAL_REQUIRED_CREDITS - completedCredits;

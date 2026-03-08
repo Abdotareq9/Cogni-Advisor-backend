@@ -7,10 +7,10 @@ import studentRoutes from "../modules/student/student.routes.js";
 import enrollmentRoutes from "../modules/enrollment/enrollment.routes.js";
 import progressRoutes from "../modules/progress/progress.routes.js";
 import semesterRoutes from "../modules/semester/semester.routes.js";
-import semesterRecordRoutes from "../modules/semesterRecord/semesterRecord.routes.js";
+import semesterRecordRoutes from "../modules/semester-record/semesterRecord.routes.js";
 import feedbackRoutes from "../modules/feedback/feedback.routes.js";
 import notificationRoutes from "../modules/notification/notification.routes.js";
-import studyPlanRoutes from "../modules/studyPlan/studyPlan.routes.js";
+import studyPlanRoutes from "../modules/study-plan/studyPlan.routes.js";
 import recommendationsRoutes from "../modules/recommendations/recommendations.routes.js";
 import advisorRoutes from "../modules/advisor/advisor.routes.js";
 import messageRoutes from "../modules/message/message.routes.js";
@@ -23,7 +23,7 @@ export interface RouteConfig {
   middleware?: RequestHandler[];
 }
 
-/** مسارات API - يتم تسجيلها تلقائياً في app */
+/** API routes - registered automatically in app */
 export const apiRoutes: RouteConfig[] = [
   { path: "/api/users", router: userRoutes },
   { path: "/api/auth", router: authRoutes },
@@ -43,5 +43,5 @@ export const apiRoutes: RouteConfig[] = [
   { path: "/api/ai", router: aiRoutes },
 ];
 
-/** المسارات الجذرية (بدون /api) */
+/** Root routes (no /api prefix) */
 export const rootRoutes: RouteConfig[] = [{ path: "/", router: indexRoutes }];

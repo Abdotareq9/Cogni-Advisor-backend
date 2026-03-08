@@ -3,7 +3,7 @@ import prisma from "../../config/prisma.js";
 const MAX_CREDITS = 18;
 
 export const generateStudyPlan = async (studentId: number) => {
-  // 1️⃣ جيب المواد اللي الطالب نجح فيها
+  // 1. Get courses the student passed
   const completed = await prisma.enrollment.findMany({
     where: {
       student_id: studentId,
@@ -15,7 +15,7 @@ export const generateStudyPlan = async (studentId: number) => {
 
   const completedIds = completed.map((c) => c.course_id);
 
-  // 2️⃣ جيب كل الكورسات
+  // 2. Get all courses
   const allCourses = await prisma.course.findMany({
     include: { prerequisites: true },
   });
@@ -24,10 +24,10 @@ export const generateStudyPlan = async (studentId: number) => {
   const suggestedCourses: any[] = [];
 
   for (const course of allCourses) {
-    // skip لو الطالب خلصها
+    // skip if student already completed
     if (completedIds.includes(course.course_id)) continue;
 
-    // تحقق من prerequisites
+    // Check prerequisites
     const prereqIds = course.prerequisites.map((p: any) => p.prereq_course_id);
 
     const hasAllPrereq = prereqIds.every((id: number) =>
@@ -36,7 +36,7 @@ export const generateStudyPlan = async (studentId: number) => {
 
     if (!hasAllPrereq) continue;
 
-    // تحقق من max credits
+    // Check max credits
     if (totalCredits + course.credits > MAX_CREDITS) continue;
 
     suggestedCourses.push(course);

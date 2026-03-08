@@ -4,7 +4,7 @@ import * as notificationService from "./notification.service.js";
 export const getMyNotificationsHandler = async (req: Request, res: Response) => {
   const recipientId = (req as any).user.id;
   const list = await notificationService.getByRecipientId(recipientId);
-  // إضافة id كمرادف لـ notification_id لتوافق الفرونت إند
+  // Add id as alias for notification_id for frontend compatibility
   const withId = list.map((n) => ({ ...n, id: n.notification_id }));
   res.json(withId);
 };

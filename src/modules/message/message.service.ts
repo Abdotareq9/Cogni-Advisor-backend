@@ -115,9 +115,9 @@ export const getMessagesWithAdvisor = async (studentUserId: number) => {
     select: { advisor_id: true }
   });
   if (!student || !student.advisor_id)
-    throw new AppError("لا يوجد مرشد مُعيّن لك. تواصل مع الإدارة", 404);
+    throw new AppError("No advisor assigned. Contact administration", 404);
 
-  const advisorUserId = student.advisor_id; // advisor_id في Advisor = user_id
+  const advisorUserId = student.advisor_id; // advisor_id in Advisor = user_id
 
   const messages = await prisma.message.findMany({
     where: {
@@ -152,7 +152,7 @@ export const sendMessageToAdvisor = async (
     select: { advisor_id: true }
   });
   if (!student || !student.advisor_id)
-    throw new AppError("لا يوجد مرشد مُعيّن لك. تواصل مع الإدارة", 404);
+    throw new AppError("No advisor assigned. Contact administration", 404);
 
   const advisorUserId = student.advisor_id;
 

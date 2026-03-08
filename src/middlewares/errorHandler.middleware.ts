@@ -21,17 +21,17 @@ export const globalErrorHandler = (
   if (err.code === "P2003") {
     return res.status(400).json({
       success: false,
-      message: "المرجع غير موجود (طالب أو مادة أو فصل)"
+      message: "Reference not found (student, course, or semester)"
     });
   }
 
   // Prisma unique constraint (P2002)
   if (err.code === "P2002") {
     const target = (err.meta?.target as string[])?.join(", ");
-    const field = target || "الحقل";
+    const field = target || "field";
     return res.status(409).json({
       success: false,
-      message: `القيمة مكررة بالفعل للحقل: ${field}`
+      message: `Value already exists for field: ${field}`
     });
   }
 
