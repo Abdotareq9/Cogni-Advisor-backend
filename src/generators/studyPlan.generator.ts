@@ -1,4 +1,4 @@
-import prisma from "../../config/prisma.js";
+import prisma from "../config/prisma.js";
 
 const MAX_CREDITS = 18;
 
@@ -13,7 +13,7 @@ export const generateStudyPlan = async (studentId: number) => {
     select: { course_id: true },
   });
 
-  const completedIds = completed.map((c) => c.course_id);
+  const completedIds = completed.map((c: { course_id: number }) => c.course_id);
 
   // 2. Get all courses
   const allCourses = await prisma.course.findMany({

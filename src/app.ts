@@ -11,8 +11,23 @@ import { requestId } from "./middlewares/requestId.middleware.js";
 import { globalErrorHandler } from "./middlewares/errorHandler.middleware.js";
 import prisma from "./config/prisma.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
-import { apiRouter, rootRouter } from "./routes.js";
 import { RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_API, RATE_LIMIT_MAX_AUTH } from "./constants/api.js";
+import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import studentRoutes from "./routes/student.routes.js";
+import advisorRoutes from "./routes/advisor.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import courseRoutes from "./routes/course.routes.js";
+import semesterRoutes from "./routes/semester.routes.js";
+import enrollmentRoutes from "./routes/enrollment.routes.js";
+import studyPlanRoutes from "./routes/studyPlan.routes.js";
+import progressRoutes from "./routes/progress.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
+import feedbackRoutes from "./routes/feedback.routes.js";
+import semesterRecordRoutes from "./routes/semesterRecord.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+import recommendationsRoutes from "./routes/recommendations.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 
 const apiLimiter = rateLimit({
   windowMs: RATE_LIMIT_WINDOW_MS,
@@ -45,8 +60,24 @@ app.use("/api", apiLimiter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/auth/login", authLimiter);
-app.use("/", rootRouter);
-app.use("/api", apiRouter);
+
+// Feature routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/advisor", advisorRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/semesters", semesterRoutes);
+app.use("/api/enrollments", enrollmentRoutes);
+app.use("/api/study-plan", studyPlanRoutes);
+app.use("/api/progress", progressRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/semester-records", semesterRecordRoutes);
+app.use("/api/advisor/messages", messageRoutes);
+app.use("/api/recommendations", recommendationsRoutes);
+app.use("/api/ai", aiRoutes);
 
 app.get("/api/health", asyncHandler(async (_req: Request, res: Response) => {
   try {
