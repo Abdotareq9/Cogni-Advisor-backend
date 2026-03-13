@@ -115,41 +115,102 @@ npm run test:coverage
 
 ## 📊 Project Structure
 
+The codebase is organized by technical layers with clear separation of concerns:
+
 ```
 src/
-├── config/           # Configuration files (DB, logger, swagger)
-│   ├── prisma.ts     # Prisma client configuration
-│   ├── logger.ts     # Winston logger setup
-│   └── swagger.ts    # OpenAPI specification
-├── middlewares/      # Express middlewares
+├── app.ts              # Express app configuration (mounts routes, middlewares, swagger)
+├── server.ts           # HTTP server bootstrap
+├── config/             # Configuration files (DB, logger, swagger, etc.)
+│   ├── prisma.ts       # Prisma client configuration
+│   ├── logger.ts       # Winston logger setup
+│   └── swagger.ts      # OpenAPI specification
+├── middlewares/        # Express middlewares
 │   ├── auth.middleware.ts         # JWT authentication
-│   ├── role.middleware.ts         # Authorization
-│   ├── validate.middleware.ts     # Zod validation
+│   ├── role.middleware.ts         # Role-based authorization
+│   ├── validate.middleware.ts     # Zod validation wrapper
 │   ├── errorHandler.middleware.ts # Global error handler
 │   └── requestId.middleware.ts    # Request tracking
-├── modules/          # Feature modules (modular architecture)
-│   ├── auth/        # Authentication & password management
-│   ├── user/        # User CRUD (Admin)
-│   ├── student/     # Student profile, academic summary
-│   ├── advisor/     # Advisor dashboard, students list
-│   ├── admin/       # System overview, settings, audit logs
-│   ├── course/      # Course catalog management
-│   ├── semester/    # Semester & academic year
-│   ├── enrollment/  # Student enrollments & grades
-│   ├── studyPlan/   # Study plan workflow
-│   ├── progress/    # Academic progress tracking
-│   ├── notification/# Notification system
-│   ├── feedback/    # Advisor feedback
-│   ├── semesterRecord/ # Semester records
-│   ├── message/     # Advisor-student messaging
-│   ├── recommendations/ # Course recommendations
-│   └── ai/          # AI integration (infrastructure)
-├── utils/           # Utility functions & helpers
-│   ├── AppError.ts       # Custom error class
-│   ├── asyncHandler.ts   # Async route wrapper
-│   └── gpaCalculator.ts  # GPA calculation utilities
-└── app.ts           # Express app configuration
+├── routes/             # Express routers per feature (HTTP routes only)
+│   ├── auth.routes.ts
+│   ├── user.routes.ts
+│   ├── student.routes.ts
+│   ├── advisor.routes.ts
+│   ├── admin.routes.ts
+│   ├── course.routes.ts
+│   ├── semester.routes.ts
+│   ├── enrollment.routes.ts
+│   ├── studyPlan.routes.ts
+│   ├── progress.routes.ts
+│   ├── notification.routes.ts
+│   ├── feedback.routes.ts
+│   ├── semesterRecord.routes.ts
+│   ├── message.routes.ts
+│   ├── recommendations.routes.ts
+│   └── ai.routes.ts
+├── controllers/        # Route handlers (HTTP layer per feature)
+│   ├── auth.controller.ts
+│   ├── user.controller.ts
+│   ├── student.controller.ts
+│   ├── advisor.controller.ts
+│   ├── admin.controller.ts
+│   ├── course.controller.ts
+│   ├── semester.controller.ts
+│   ├── enrollment.controller.ts
+│   ├── studyPlan.controller.ts
+│   ├── progress.controller.ts
+│   ├── notification.controller.ts
+│   ├── feedback.controller.ts
+│   ├── semesterRecord.controller.ts
+│   ├── message.controller.ts
+│   ├── recommendations.controller.ts
+│   └── ai.controller.ts
+├── services/           # Business logic & data access (Prisma)
+│   ├── auth.service.ts
+│   ├── user.service.ts
+│   ├── student.service.ts
+│   ├── advisor.service.ts
+│   ├── admin.service.ts
+│   ├── course.service.ts
+│   ├── semester.service.ts
+│   ├── enrollment.service.ts
+│   ├── studyPlan.service.ts
+│   ├── progress.service.ts
+│   ├── notification.service.ts
+│   ├── feedback.service.ts
+│   ├── semesterRecord.service.ts
+│   ├── message.service.ts
+│   ├── recommendations.service.ts
+│   └── ai.service.ts
+├── validations/        # Zod schemas for request validation
+│   ├── auth.validation.ts
+│   ├── user.validation.ts
+│   ├── student.validation.ts
+│   ├── advisor.validation.ts
+│   ├── admin.validation.ts
+│   ├── course.validation.ts
+│   ├── semester.validation.ts
+│   ├── enrollment.validation.ts
+│   ├── studyPlan.validation.ts
+│   ├── progress.validation.ts
+│   ├── notification.validation.ts
+│   ├── feedback.validation.ts
+│   ├── semesterRecord.validation.ts
+│   ├── message.validation.ts
+│   ├── recommendations.validation.ts
+│   └── ai.validation.ts
+├── generators/         # Complex generators (e.g. study plan generation)
+│   └── studyPlan.generator.ts
+├── types/              # Global TypeScript type declarations
+│   └── express.d.ts
+├── utils/              # Utility functions & helpers
+│   ├── AppError.ts          # Custom error class
+│   ├── asyncHandler.ts      # Async route wrapper
+│   └── gpaCalculator.ts     # GPA calculation utilities
+└── generated/          # Prisma generated client (do not edit manually)
 ```
+
+For a deeper architectural overview (request lifecycle, feature modules and data flow), see `docs/ARCHITECTURE.md`. For a comprehensive Arabic walkthrough of the system and APIs, see `docs/README.md`.
 
 ## 🔐 Environment Variables
 

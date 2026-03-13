@@ -8,10 +8,10 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 import { createMorganStream } from "./config/logger.js";
 import { requestId } from "./middlewares/requestId.middleware.js";
-import { apiRoutes, rootRoutes } from "./routes/registry.js";
 import { globalErrorHandler } from "./middlewares/errorHandler.middleware.js";
 import prisma from "./config/prisma.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
+import { apiRouter, rootRouter } from "./routes.js";
 import { RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_API, RATE_LIMIT_MAX_AUTH } from "./constants/api.js";
 
 const apiLimiter = rateLimit({
@@ -45,11 +45,8 @@ app.use("/api", apiLimiter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/auth/login", authLimiter);
-rootRoutes.forEach(({ path, router }) => app.use(path, router));
-apiRoutes.forEach(({ path, router, middleware }) => {
-  if (middleware?.length) app.use(path, ...middleware, router);
-  else app.use(path, router);
-});
+app.use("/", rootRouter);
+app.use("/api", apiRouter);
 
 app.get("/api/health", asyncHandler(async (_req: Request, res: Response) => {
   try {

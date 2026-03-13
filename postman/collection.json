@@ -62,13 +62,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"identifier\": \"30403182201318\",\n  \"password\": \"Abdotareq||90&\",\n  \"role\": \"ADMIN\"\n}"
+              "raw": "{\n  \"identifier\": \"12345678901234\",\n  \"password\": \"YourPasswordHere123\",\n  \"role\": \"ADMIN\"\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/auth/login",
               "host": ["{{BASE_URL}}"],
               "path": ["api", "auth", "login"]
-            }
+            },
+            "description": "Use this request to login as any role (ADMIN/ADVISOR/STUDENT).\n- Update `identifier` and `password` with real credentials from your seed data.\n- On success, the script will automatically set `ADMIN_TOKEN`, `ADVISOR_TOKEN`, or `STUDENT_TOKEN` collection variables based on the returned user role.\n- Other requests in this collection reference these variables in the `Authorization` header."
           },
           "response": []
         },
